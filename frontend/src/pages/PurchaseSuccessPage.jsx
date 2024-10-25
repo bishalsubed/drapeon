@@ -10,28 +10,26 @@ const PurchaseSuccessPage = () => {
 	const { clearCart } = useCartStore();
 	const [error, setError] = useState(null);
 
-	// useEffect(() => {
-	// 	const handleCheckoutSuccess = async (sessionId) => {
-	// 		try {
-	// 			await axios.post("/payments/checkout-success", {
-	// 				sessionId,
-	// 			});
-	// 			clearCart();
-	// 		} catch (error) {
-	// 			console.log(error);
-	// 		} finally {
-	// 			setIsProcessing(false);
-	// 		}
-	// 	};
+	useEffect(() => {
+		const successData = new URLSearchParams(window.location.search).get("data");
+		const handleCheckoutSuccess = async () => {
+			try {
+				await axios.get(`/payments/complete-payment?data=${successData}`);
+				clearCart();
+			} catch (error) {
+				console.log(error);
+			} finally {
+				setIsProcessing(false);
+			}
+		};
 
-	// 	const sessionId = new URLSearchParams(window.location.search).get("session_id");
-	// 	if (sessionId) {
-	// 		handleCheckoutSuccess(sessionId);
-	// 	} else {
-	// 		setIsProcessing(false);
-	// 		setError("No session ID found in the URL");
-	// 	}
-	// }, [clearCart]);
+		if (successData) {
+			handleCheckoutSuccess();
+		} else {
+			setIsProcessing(false);
+			setError("No Data found in the url");
+		}
+	}, [clearCart]);
 
 	if (isProcessing) return "Processing...";
 
