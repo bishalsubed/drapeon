@@ -22,7 +22,6 @@ const OrderSummary = () => {
         const form = document.createElement("form");
         form.action = "https://rc-epay.esewa.com.np/api/epay/main/v2/form";
         form.method = "POST";
-        form.target = "_blank";
 
         Object.keys(data.paymentData).forEach(key => {
           const input = document.createElement('input');
