@@ -1,6 +1,7 @@
 import dotenv from "dotenv";
 dotenv.config();
 import crypto from "crypto";
+import axios from "axios";
 export const getEsewaPaymentHash = async ({ amount, transaction_uuid }) => {
     try {
         const data = `total_amount=${amount},transaction_uuid=${transaction_uuid},product_code=${process.env.ESEWA_PRODUCT_CODE}`;
@@ -24,9 +25,12 @@ export const getEsewaPaymentHash = async ({ amount, transaction_uuid }) => {
 
 export const verifyEsewaPayment = async (encodedData) => {
     try {
+        if (!encodedData) {
+            throw new Error("encodedData is required and cannot be undefined.");
+        }
 
-        let Data = atob(encodedData);
-        let decodedData = await JSON.parse(Data);
+        let obtainedData = Buffer.from(encodedData, 'base64').toString('utf-8')
+        let decodedData = await JSON.parse(obtainedData);
         let headersList = {
             Accept: "application/json",
             "Content-Type": "application/json",
@@ -45,7 +49,7 @@ export const verifyEsewaPayment = async (encodedData) => {
         }
 
         let reqOptions = {
-            url: `${process.env.ESEWA_GATEWAY_URL}/api/epay/transaction/status/?product_code=${process.env.ESEWA_PRODUCT_CODE}&total_amount=${decodedData.total_amount}&transaction_uuid=${decodedData.transaction_uuid}`,
+            url: `https://uat.esewa.com.np/api/epay/transaction/status/?product_code=${process.env.ESEWA_PRODUCT_CODE}&total_amount=${decodedData.total_amount}&transaction_uuid=${decodedData.transaction_uuid}`,
             method: "GET",
             headers: headersList,
         };

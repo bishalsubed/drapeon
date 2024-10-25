@@ -1,25 +1,8 @@
 import { getEsewaPaymentHash, verifyEsewaPayment } from "../lib/esewa.js";
 import Order from "../models/order.model.js";
-import Product from "../models/product.model.js";
 import Payment from "../models/payment.model.js";
 import dotenv from "dotenv";
-import axios from "axios";
 dotenv.config();
-
-function safeStringify(obj) {
-    const seen = new WeakSet();
-
-    return JSON.stringify(obj, (key, value) => {
-        // Check for circular references
-        if (value !== null && typeof value === 'object') {
-            if (seen.has(value)) {
-                return; // Remove circular reference
-            }
-            seen.add(value);
-        }
-        return value;
-    });
-}
 
 export const initializeEsewa = async (req, res) => {
     try {
@@ -30,10 +13,6 @@ export const initializeEsewa = async (req, res) => {
         }
 
         const totalAmount = products.reduce((sum, product) => sum + product.price, 0);
-
-        const productDescription = products
-            .map((product) => `${product.title} x${product.quantity}`)
-            .join(', ');
 
 
         // Create a record for the purchase
@@ -102,13 +81,21 @@ export const completePayment = async (req, res) => {
                 message: "Purchase not found",
             });
         }
+        
+        const existingPayment = await Payment.findOne({ transactionId: paymentInfo.decodedData.transaction_code });
+        if (existingPayment) {
+            return res.status(409).json({
+                success: false,
+                message: "Payment has already been processed.",
+                paymentData: existingPayment, // Optionally return the existing payment data
+            });
+        }
 
         // Create a new payment record in the database
         const paymentData = await Payment.create({
-            // pidx: paymentInfo.decodedData.transaction_code,
             transactionId: paymentInfo.decodedData.transaction_code,
-            productId: paymentInfo.response.transaction_uuid,
-            amount: purchasedItemData.totalPrice,
+            orderId: paymentInfo.response.transaction_uuid,
+            amount: purchasedItemData.totalAmount,
             dataFromVerificationReq: paymentInfo,
             apiQueryFromUser: req.query,
             paymentGateway: "esewa",
