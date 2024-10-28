@@ -19,16 +19,16 @@ const storeRefreshToken = async (userId, refreshToken) => {
 const setCookies = (res, accessToken, refreshToken) => {
     res.cookie("accessToken", accessToken, {
         httpOnly: true,
-        secure: true,
-        sameSite: "None",
-        maxAge: 15 * 60 * 1000
-    })
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "strict",
+        maxAge: 15 * 60 * 1000,
+    });
     res.cookie("refreshToken", refreshToken, {
         httpOnly: true,
-        secure: true,
-        sameSite: "None",
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "strict",
         maxAge: 7 * 24 * 60 * 60 * 1000,
-    })
+    });
 }
 export const signUp = async (req, res) => {
     const { name, email, password } = req.body;
@@ -37,7 +37,7 @@ export const signUp = async (req, res) => {
         if (userAlreadyExists) {
             res.status(400).json({ success: false, message: "User Already Exists" })
         }
-        const user = await User.create({ name,email, password })
+        const user = await User.create({ name, email, password })
 
         const { accessToken, refreshToken } = generateToken(user._id)
 
@@ -66,10 +66,10 @@ export const login = async (req, res) => {
         if (!user) {
             res.status(400).json({ success: false, message: "User Doesn't Exists" })
         }
-        if(!(await user.comparePassword(password))){
+        if (!(await user.comparePassword(password))) {
             res.status(400).json({ success: false, message: "Incorrect Password" })
         }
-        
+
         const { accessToken, refreshToken } = generateToken(user._id)
 
         await storeRefreshToken(user._id, refreshToken)
@@ -111,27 +111,28 @@ export const logout = async (req, res) => {
 export const refreshToken = async (req, res) => {
     try {
         const refreshToken = req.cookies.refreshToken;
-        if(!refreshToken){
-            return res.status(401).json({ success: false, message: "Unauthorized-No token found" })
+        if (!refreshToken) {
+            return res.status(401).json({ success: false, message: "No refresh token provided" })
         }
-        const decoded =jwt.verify(refreshToken,process.env.REFRESH_TOKEN_SECRET);
-        if(!decoded){
+        const decoded = jwt.verify(refreshToken, process.env.REFRESH_TOKEN_SECRET);
+        if (!decoded) {
             return res.status(401).json({ success: false, message: "Unauthorized-Invalid token" })
         }
         const storedToken = await redis.get(`refresh_token:${decoded.userId}`)
-        if(!storedToken || storedToken !== refreshToken){
+        if (!storedToken || storedToken !== refreshToken) {
             return res.status(401).json({ success: false, message: "Unauthorized-Invalid token" })
         }
-        const { accessToken } = jwt.sign({ userId: decoded.userId }, process.env.ACCESS_TOKEN_SECRET, {
+        const accessToken = jwt.sign({ userId: decoded.userId }, process.env.ACCESS_TOKEN_SECRET, {
             expiresIn: "15m",
         })
         res.cookie("accessToken", accessToken, {
             httpOnly: true,
-            secure: true,
-            sameSite: "None",
-            maxAge: 15 * 60 * 1000
-        })
-        res.status(200).json({ success: true, message:"Token refreshed successfully"})
+            secure: process.env.NODE_ENV === "production",
+            sameSite: "strict",
+            maxAge: 15 * 60 * 1000,
+        });
+
+        res.status(200).json({ success: true, message: "Token refreshed successfully" })
     } catch (error) {
         console.log(`Error refreshing token ${error.message}`)
         res.status(500).json({ success: false, message: "Error refreshing token" })
