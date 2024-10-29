@@ -10,12 +10,15 @@ import couponRoutes from "./routes/coupon.route.js"
 import paymentRoutes from "./routes/payment.route.js"
 import cors from "cors";
 import bodyParser from "body-parser";
+import path from "path";
 
 dotenv.config()
 
 
 const app = express();
 const PORT = process.env.PORT;
+
+const __dirname = path.resolve();
 
 app.use(bodyParser.json());
 
@@ -34,6 +37,14 @@ app.use("/api/cart",cartRoutes)
 app.use("/api/coupons",couponRoutes)
 app.use("/api/analytics",analyticsRoutes)
 app.use("/api/payments",paymentRoutes) 
+
+if(process.env.NODE_ENV === "production"){
+  app.use(express.static(path.join(__dirname,"/frontend/dist")));
+
+  app.get("*",(req,res)=>{
+    res.sendFile(path.resolve(__dirname,"frontend","dist","index.html"));
+  })
+}
 
 app.listen(PORT, ()=>{
     console.log(`Server is running on the PORT:${PORT}`)
