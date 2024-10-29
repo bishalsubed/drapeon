@@ -74,6 +74,27 @@ export const useUserStore = create((set, get) => ({
             set({ loading: false });
         }
     },
+
+    forgotPassword: async (email) => {
+        set({ loading: true,message:null });
+        try {
+            const response = await axios.post(`/auth/forgot-password`, {email})
+            set({  message: response.data.message, loading: false })
+        } catch (error) {
+            set({ error: error.response.data.message || "Error sending forgot password request", loading: false, })
+            throw error
+        }
+    },
+    resetPassword: async (token,password) => {
+        set({ loading: true, message:null });
+        try {
+            const response = await axios.post(`/auth/reset-password/${token}`,{password})
+            set({ message: response.data.message, loading: false })
+        } catch (error) {
+            set({ error: error.response.data.message || "Error sending forgot password request", loading: false, })
+            throw error
+        }
+    },
     refreshToken: async () => {
         // Prevent multiple simultaneous refresh attempts
         if (get().checkingAuth) return;

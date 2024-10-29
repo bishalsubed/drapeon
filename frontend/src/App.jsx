@@ -13,11 +13,13 @@ import CartPage from './pages/CartPage'
 import { useCartStore } from './stores/useCartStore'
 import PurchaseSuccessPage from './pages/PurchaseSuccessPage'
 import PurchaseCancelPage from './pages/PurchaseCancelPage'
+import ForgotPasswordPage from './pages/ForgotPasswordPage'
+import ResetPasswordPage from './pages/ResetPasswordPage'
 
 function App() {
 
   const { user, checkAuth, checkingAuth } = useUserStore();
-  const { getCartItems, cart } = useCartStore();
+  const { getCartItems } = useCartStore();
 
   useEffect(() => {
     checkAuth();
@@ -48,6 +50,8 @@ function App() {
           <Route path='/cart' element={user ? <CartPage /> : <Navigate to='/login' />} />
           <Route path='/purchase-success'	element={user ? <PurchaseSuccessPage /> : <Navigate to='/login' />}/>
           <Route path='/purchase-cancel' element={user ? <PurchaseCancelPage /> : <Navigate to='/login' />} />
+          <Route path='/forgot-password' element={<ForgotPasswordPage />} />
+          <Route path='/reset-password/:token' element={user? <Navigate to='/' /> : <ResetPasswordPage />} />
         </Routes>
       </div>
       <Toaster />
