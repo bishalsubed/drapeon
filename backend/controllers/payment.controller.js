@@ -35,13 +35,13 @@ export const initializeEsewa = async (req, res) => {
 
         let paymentData = {
             amount: totalAmount,
-            failure_url: "http://localhost:5173/purchase-cancel",
+            failure_url: `${process.env.CLIENT_URL}/purchase-cancel`,
             product_delivery_charge: "0",
             product_service_charge: "0",
             product_code: process.env.ESEWA_PRODUCT_CODE,
             signature: paymentInitiate.signature,
             signed_field_names: paymentInitiate.signed_field_names,
-            success_url: "http://localhost:5173/purchase-success",
+            success_url: `${process.env.CLIENT_URL}/purchase-success`,
             tax_amount: "0",
             total_amount: totalAmount,
             transaction_uuid: purchasedItemData._id,
@@ -123,3 +123,18 @@ export const completePayment = async (req, res) => {
         });
     }
 };
+
+async function createNewCoupon(userId) {
+	await Coupon.findOneAndDelete({ userId });
+
+	const newCoupon = new Coupon({
+		code: "GIFT" + Math.random().toString(36).substring(2, 8).toUpperCase(),
+		discountPercentage: 10,
+		expirationDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days from now
+		userId: userId,
+	});
+
+	await newCoupon.save();
+
+	return newCoupon;
+}
