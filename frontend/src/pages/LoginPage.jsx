@@ -1,15 +1,27 @@
-import React, { useState } from 'react'
+import React, { useState, useRef } from 'react'
 import { Link } from 'react-router-dom'
-import { Lock, LogIn, Mail, ArrowRight, Loader } from 'lucide-react'
+import { Lock, LogIn, Mail, ArrowRight, Loader, EyeIcon, EyeOff } from 'lucide-react'
 import { motion } from 'framer-motion'
 import { useUserStore } from '../stores/useUserStore'
 
 const LoginPage = () => {
   const [email, setEmail] = useState("")
+  const [isPasswordVisible, setIsPasswordVisible] = useState(false);
   const [password, setPassword] = useState("")
 
   const { login, loading } = useUserStore()
+  const inputRef = useRef()
 
+  const togglePassword = () => {
+    if (inputRef.current) {
+      if (inputRef.current.type == "password") {
+        inputRef.current.type = "text"
+      } else {
+        inputRef.current.type = "password"
+      }
+      setIsPasswordVisible(!isPasswordVisible)
+    }
+  }
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -62,6 +74,7 @@ const LoginPage = () => {
                   <Lock className='h-5 w-5 text-gray-400' aria-hidden='true' />
                 </div>
                 <input
+                  ref={inputRef}
                   id='password'
                   type='password'
                   required
@@ -71,10 +84,13 @@ const LoginPage = () => {
 									rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-orange-500 focus:border-orange-500 sm:text-sm'
                   placeholder='••••••••'
                 />
-              </div>
-                <div className="flex justify-end mt-2">
-                  <Link to={'/forgot-password'} className='text-sm text-orange-400 hover:underline'>Forgot Password?</Link>
+                <div className='absolute inset-y-0 right-0 flex items-center pr-3 cursor-pointer' onClick={togglePassword}>
+                {isPasswordVisible ? <EyeIcon className="size-5 text-orange-500" /> : <EyeOff className="size-5 text-orange-500" />}
                 </div>
+              </div>
+              <div className="flex justify-end mt-2">
+                <Link to={'/forgot-password'} className='text-sm text-orange-400 hover:underline'>Forgot Password?</Link>
+              </div>
             </div>
 
             <button

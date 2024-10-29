@@ -1,17 +1,31 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { motion } from "framer-motion";
 import { useUserStore } from "../stores/useUserStore";
 import { useNavigate, useParams } from "react-router-dom";
-import { Lock } from "lucide-react";
+import { Lock,EyeIcon, EyeOff } from "lucide-react";
 import toast from "react-hot-toast";
 
 const ResetPasswordPage = () => {
     const [password, setPassword] = useState("");
+    const [isPasswordVisible, setIsPasswordVisible] = useState(false);
     const [confirmPassword, setConfirmPassword] = useState("");
     const { resetPassword, loading } = useUserStore();
 
     const { token } = useParams()
     const navigate = useNavigate()
+
+    const inputRef = useRef()
+
+    const togglePassword = () => {
+        if (inputRef.current) {
+            if (inputRef.current.type == "password") {
+                inputRef.current.type = "text"
+            } else {
+                inputRef.current.type = "password"
+            }
+            setIsPasswordVisible(!isPasswordVisible)
+        }
+    }
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -43,21 +57,24 @@ const ResetPasswordPage = () => {
                 </h2>
 
                 <form onSubmit={handleSubmit}>
-                     
+
                     <div className='relative mb-6'>
                         <div className='absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none'>
                             <Lock className="size-5 text-orange-500" />
                         </div>
-                        <input type='password' placeholder='New Password'  className='w-full pl-10 pr-3 py-2 bg-gray-800 bg-opacity-50 rounded-lg border border-gray-700 focus:outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500 text-white placeholder-gray-400 transition duration-200'
-                        value={password}  onChange={(e) => setPassword(e.target.value)} required />
+                        <input ref={inputRef} type='password' placeholder='New Password' className='w-full pl-10 pr-3 py-2 bg-gray-800 bg-opacity-50 rounded-lg border border-gray-700 focus:outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500 text-white placeholder-gray-400 transition duration-200'
+                            value={password} onChange={(e) => setPassword(e.target.value)} required />
+                        <div className='absolute inset-y-0 right-0 flex items-center pr-3 cursor-pointer' onClick={togglePassword}>
+                            {isPasswordVisible ? <EyeIcon className="size-5 text-orange-500" /> : <EyeOff className="size-5 text-orange-500" />}
+                        </div>
                     </div>
-                    
+
                     <div className='relative mb-6'>
                         <div className='absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none'>
                             <Lock className="size-5 text-orange-500" />
                         </div>
-                        <input type='password' placeholder='Confirm New Password'  className='w-full pl-10 pr-3 py-2 bg-gray-800 bg-opacity-50 rounded-lg border border-gray-700 focus:outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500 text-white placeholder-gray-400 transition duration-200'
-                        value={confirmPassword}  onChange={(e) => setConfirmPassword(e.target.value)} required />
+                        <input type='password' placeholder='Confirm New Password' className='w-full pl-10 pr-3 py-2 bg-gray-800 bg-opacity-50 rounded-lg border border-gray-700 focus:outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500 text-white placeholder-gray-400 transition duration-200'
+                            value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} required />
                     </div>
 
                     <motion.button

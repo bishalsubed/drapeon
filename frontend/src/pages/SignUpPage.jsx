@@ -1,6 +1,6 @@
-import React, { useState } from 'react'
+import React, { useState, useRef } from 'react'
 import { Link } from 'react-router-dom'
-import { Lock, UserPlus, User, Mail, ArrowRight, Loader } from 'lucide-react'
+import { Lock, UserPlus, User, Mail, ArrowRight, Loader,EyeIcon, EyeOff } from 'lucide-react'
 import { motion } from 'framer-motion'
 import { useUserStore } from '../stores/useUserStore'
 
@@ -11,8 +11,23 @@ const SignUpPage = () => {
     password: '',
     confirmPassword: '',
   })
+  const [isPasswordVisible, setIsPasswordVisible] = useState(false);
+  const inputRef = useRef()
 
-  const {signUp,user,loading} = useUserStore()
+  const togglePassword = () => {
+    if (inputRef.current) {
+      if (inputRef.current.type == "password") {
+        inputRef.current.type = "text"
+      } else {
+        inputRef.current.type = "password"
+      }
+      setIsPasswordVisible(!isPasswordVisible)
+    }
+  }
+
+
+
+  const { signUp, user, loading } = useUserStore()
 
 
   const handleSubmit = (e) => {
@@ -86,6 +101,7 @@ const SignUpPage = () => {
                   <Lock className='h-5 w-5 text-gray-400' aria-hidden='true' />
                 </div>
                 <input
+                  ref={inputRef}
                   id='password'
                   type='password'
                   required
@@ -95,6 +111,9 @@ const SignUpPage = () => {
 									rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-orange-500 focus:border-orange-500 sm:text-sm'
                   placeholder='••••••••'
                 />
+                 <div className='absolute inset-y-0 right-0 flex items-center pr-3 cursor-pointer' onClick={togglePassword}>
+                {isPasswordVisible ? <EyeIcon className="size-5 text-orange-500" /> : <EyeOff className="size-5 text-orange-500" />}
+                </div>
               </div>
             </div>
 
@@ -140,11 +159,11 @@ const SignUpPage = () => {
             </button>
           </form>
           <p className='mt-8 text-center text-sm text-gray-400'>
-						Already have an account?{" "}
-						<Link to='/login' className='font-medium text-orange-400 hover:text-orange-300'>
-							Login here <ArrowRight className='inline h-4 w-4' />
-						</Link>
-					</p>
+            Already have an account?{" "}
+            <Link to='/login' className='font-medium text-orange-400 hover:text-orange-300'>
+              Login here <ArrowRight className='inline h-4 w-4' />
+            </Link>
+          </p>
         </div>
       </motion.div>
     </div>
