@@ -11,11 +11,10 @@ const GiftCouponCard = () => {
     }, [getMyCoupon]);
 
     useEffect(() => {
-        // Ensure userInputCode is set to an empty string if coupon is undefined or has no code
         if (coupon && coupon.code) {
             setUserInputCode(coupon.code);
         } else {
-            setUserInputCode(''); // Reset to empty string if no valid coupon
+            setUserInputCode(''); 
         }
     }, [coupon]);
 
@@ -26,7 +25,7 @@ const GiftCouponCard = () => {
 
     const handleRemoveCoupon = async () => {
         await removeCoupon();
-        setUserInputCode(""); // Reset input on removal
+        setUserInputCode("");
     };
 
     return (
