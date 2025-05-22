@@ -4,21 +4,21 @@ import axios from '../lib/axios';
 import LoadingSpinner from './LoadingSpinner';
 
 const PeopleAlsoBought = () => {
- const [recommendations, setRecommendations] = useState([])
- const [loading, setLoading] = useState(true)
- useEffect(() => {
-  const fetchRecommendations = async () => {
-    try {
-      const res = await axios.get("/products/recommendations")
-      setRecommendations(res.data.products)
-    } catch (error) {
-     console.log("Error in fetching recommendations", error.message) 
-    }finally{
-      setLoading(false)
+  const [recommendations, setRecommendations] = useState([])
+  const [loading, setLoading] = useState(true)
+  useEffect(() => {
+    const fetchRecommendations = async () => {
+      try {
+        const res = await axios.get("/products/recommendations")
+        setRecommendations(res.data.products)
+      } catch (error) {
+        console.log("Error in fetching recommendations", error.message)
+      } finally {
+        setLoading(false)
+      }
     }
-  }
-  fetchRecommendations()
- },[])
+    fetchRecommendations()
+  }, [])
   if (loading) return <LoadingSpinner />
   return (
     <div className='mt-8'>
