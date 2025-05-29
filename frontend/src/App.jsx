@@ -15,6 +15,7 @@ import PurchaseSuccessPage from './pages/PurchaseSuccessPage'
 import PurchaseCancelPage from './pages/PurchaseCancelPage'
 import ForgotPasswordPage from './pages/ForgotPasswordPage'
 import ResetPasswordPage from './pages/ResetPasswordPage'
+import OrderDetails from './components/OrderDetails'
 
 function App() {
 
@@ -46,6 +47,7 @@ function App() {
           <Route path='/signup' element={!user ? <SignUpPage /> : <Navigate to='/' />} />
           <Route path='/login' element={!user ? <LoginPage /> : <Navigate to='/' />} />
           <Route path='/secret-dashboard' element={user?.role === 'admin' ? <AdminPage /> : <Navigate to='/' />} />
+          <Route path='/secret-dashboard/order/:orderId' element={user?.role === 'admin' ? <OrderDetails /> : <Navigate to='/' />} />
           <Route path='/category/:category' element={<CategoryPage />} />
           <Route path='/cart' element={user ? <CartPage /> : <Navigate to='/login' />} />
           <Route path='/purchase-success'	element={user ? <PurchaseSuccessPage /> : <Navigate to='/login' />}/>

@@ -6,18 +6,21 @@ dotenv.config();
 
 export const initializeEsewa = async (req, res) => {
     try {
-        const { products } = req.body;
+        const { products, phoneNumber, fullAddress } = req.body;
 
         if (!Array.isArray(products) || products.length === 0) {
-            return res.status(400).json({ error: "Invalid or empty products array" });
+            return res.status(400).json({ message: "Invalid or empty products array" });
+        }
+        if (!phoneNumber || !fullAddress) {
+            return res.status(400).json({ message: "Invalid or empty address or phone number" });
         }
 
-        const totalAmount = products.reduce((sum, product) => sum + product.price, 0);
+        const totalAmount = products.reduce((sum, product) => sum + product.price * product.quantity, 0);
 
-
-        // Create a record for the purchase
         const purchasedItemData = await Order.create({
             user: req.user._id,
+            phoneNumber: phoneNumber,
+            fullAddress: fullAddress,
             products: products.map((product) => ({
                 product: product._id,
                 quantity: product.quantity,
@@ -25,9 +28,9 @@ export const initializeEsewa = async (req, res) => {
             })),
             paymentMethod: "esewa",
             totalAmount: totalAmount,
+            status: "pending",
         });
 
-        // Initiate payment with eSewa
         const paymentInitiate = await getEsewaPaymentHash({
             amount: totalAmount,
             transaction_uuid: purchasedItemData._id,
@@ -64,13 +67,11 @@ export const initializeEsewa = async (req, res) => {
 };
 
 export const completePayment = async (req, res) => {
-    const { data } = req.query; // Data received from eSewa's redirect
+    const { data } = req.query;
 
     try {
-        // Verify payment with eSewa
         const paymentInfo = await verifyEsewaPayment(data);
 
-        // Find the purchased item using the transaction UUID
         const purchasedItemData = await Order.findById(
             paymentInfo.response.transaction_uuid
         );
@@ -81,17 +82,16 @@ export const completePayment = async (req, res) => {
                 message: "Purchase not found",
             });
         }
-        
+
         const existingPayment = await Payment.findOne({ transactionId: paymentInfo.decodedData.transaction_code });
         if (existingPayment) {
             return res.status(409).json({
                 success: false,
                 message: "Payment has already been processed.",
-                paymentData: existingPayment, // Optionally return the existing payment data
+                paymentData: existingPayment,
             });
         }
 
-        // Create a new payment record in the database
         const paymentData = await Payment.create({
             transactionId: paymentInfo.decodedData.transaction_code,
             orderId: paymentInfo.response.transaction_uuid,
@@ -102,13 +102,16 @@ export const completePayment = async (req, res) => {
             status: "success",
         });
 
-        // Update the purchased item status to 'completed'
         await Order.findByIdAndUpdate(
             paymentInfo.response.transaction_uuid,
-            { $set: { status: "completed" } }
+            {
+                $set: {
+                    isPaymentCompleted: true,
+                    paymentInfo: paymentData._id,
+                }
+            }
         );
 
-        // Respond with success message
         res.json({
             success: true,
             message: "Payment successful",
@@ -123,18 +126,3 @@ export const completePayment = async (req, res) => {
         });
     }
 };
-
-async function createNewCoupon(userId) {
-	await Coupon.findOneAndDelete({ userId });
-
-	const newCoupon = new Coupon({
-		code: "GIFT" + Math.random().toString(36).substring(2, 8).toUpperCase(),
-		discountPercentage: 10,
-		expirationDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days from now
-		userId: userId,
-	});
-
-	await newCoupon.save();
-
-	return newCoupon;
-}

@@ -7,7 +7,7 @@ const categories = ["jeans", "t-shirts", "shoes", "glasses", "jackets", "suits",
 
 
 const CreateProductForm = () => {
-  const { createProduct,loading } = useProductStore();
+  const { createProduct, loading } = useProductStore();
   const [newProduct, setNewProduct] = useState({
     title: "",
     description: "",

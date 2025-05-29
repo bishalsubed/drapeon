@@ -7,6 +7,22 @@ const orderSchema = new mongoose.Schema(
 			ref: "User",
 			required: true,
 		},
+		phoneNumber: {
+			type: String,
+			required: true,
+			minlength: 10,
+			maxlength: 10,
+			validate: {
+				validator: function (v) {
+					return v.length === 10;
+				},
+				message: props => `${props.value} must be exactly 10 characters!`
+			}
+		},
+		fullAddress: {
+			type: String,
+			required: true,
+		},
 		products: [
 			{
 				product: {
@@ -33,9 +49,22 @@ const orderSchema = new mongoose.Schema(
 		},
 		paymentMethod: {
 			type: String,
-			enum: ["esewa", "COD"],
+			enum: ["esewa", "cod"],
 			required: true
 		},
+		isPaymentCompleted: {
+			type: Boolean,
+			default: false
+		},
+		paymentInfo: {
+			type: mongoose.Schema.Types.ObjectId,
+			ref: "payment"
+		},
+		status: {
+			type: String,
+			enum: ["pending", "delivered", "cancelled"],
+			default: "pending"
+		}
 	},
 	{ timestamps: true }
 );

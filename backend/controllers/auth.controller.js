@@ -2,16 +2,22 @@ import User from "../models/User.model.js";
 import jwt from "jsonwebtoken"
 import redis from "../lib/redis.js"
 import crypto from "crypto"
-import {sendPasswordResetEmail, sendResetSuccessEmail} from "../mailtrap/emails.js"
+import { sendPasswordResetEmail, sendResetSuccessEmail } from "../mailtrap/emails.js"
 
-const generateToken = (userId) => {
-    const accessToken = jwt.sign({ userId }, process.env.ACCESS_TOKEN_SECRET, {
-        expiresIn: "15m",
-    })
-    const refreshToken = jwt.sign({ userId }, process.env.REFRESH_TOKEN_SECRET, {
-        expiresIn: "7d",
-    })
-    return { accessToken, refreshToken }
+const generateAccessAndRefreshToken = async (userId) => {
+    try {
+        const user = await User.findById(userId)
+        const accessToken = user.generateAccessToken()
+        const refreshToken = user.generateRefreshToken()
+
+        user.refreshToken = refreshToken
+        await user.save({ validateBeforeSave: false })
+
+        return { accessToken, refreshToken }
+    } catch (error) {
+        console.log("Error generating access and refresh token", error)
+        return res.status(500).json({ message: "Error generating access and refresh token" })
+    }
 }
 
 const storeRefreshToken = async (userId, refreshToken) => {
@@ -21,15 +27,13 @@ const storeRefreshToken = async (userId, refreshToken) => {
 const setCookies = (res, accessToken, refreshToken) => {
     res.cookie("accessToken", accessToken, {
         httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
+        secure: true,
         sameSite: "strict",
-        maxAge: 15 * 60 * 1000,
     });
     res.cookie("refreshToken", refreshToken, {
         httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
+        secure: true,
         sameSite: "strict",
-        maxAge: 7 * 24 * 60 * 60 * 1000,
     });
 }
 export const signUp = async (req, res) => {
@@ -41,7 +45,7 @@ export const signUp = async (req, res) => {
         }
         const user = await User.create({ name, email, password })
 
-        const { accessToken, refreshToken } = generateToken(user._id)
+        const { accessToken, refreshToken } = await generateAccessAndRefreshToken(user._id)
 
         await storeRefreshToken(user._id, refreshToken)
 
@@ -72,7 +76,7 @@ export const login = async (req, res) => {
             return res.status(400).json({ success: false, message: "Incorrect Password" })
         }
 
-        const { accessToken, refreshToken } = generateToken(user._id)
+        const { accessToken, refreshToken } = await generateAccessAndRefreshToken(user._id)
 
         await storeRefreshToken(user._id, refreshToken)
 
@@ -95,18 +99,33 @@ export const login = async (req, res) => {
 
 export const logout = async (req, res) => {
     try {
-        const refreshToken = req.cookies.refreshToken;
-        const accessToken = req.cookies.accessToken;
-        if (refreshToken) {
-            const decoded = jwt.verify(refreshToken, process.env.REFRESH_TOKEN_SECRET)
-            await redis.del(`refresh_token:${decoded.userId}`)
+        await User.findByIdAndUpdate(
+            req.user._id,
+            {
+                $unset: {
+                    refreshToken: 1,
+                }
+            },
+            {
+                new: true
+            }
+        )
+        const options = {
+            httpOnly: true,
+            secure: true,
+            sameSite: "strict",
         }
-        res.clearCookie(accessToken);
-        res.clearCookie(refreshToken);
-        res.status(200).json({ success: true, message: "Logged out successfully" })
+
+        return res
+            .status(200)
+            .clearCookie("accessToken", options)
+            .clearCookie("refreshToken", options)
+            .json({
+                message: "User Logged Out Successfully"
+            })
     } catch (error) {
-        console.log(`Error logging out ${error.message}`)
-        res.status(500).json({ success: false, message: "Error logging out user" })
+        console.log("Error logging out user", error)
+        return res.status(500).json({ message: "Error logging out user" })
     }
 }
 
@@ -161,29 +180,38 @@ export const resetPassword = async (req, res) => {
 
 export const refreshToken = async (req, res) => {
     try {
-        const refreshToken = req.cookies.refreshToken;
-        if (!refreshToken) {
+        const incomingRefreshToken = req.cookies?.refreshToken || req.body.refreshToken
+        if (!incomingRefreshToken) {
             return res.status(401).json({ success: false, message: "No refresh token provided" })
         }
-        const decoded = jwt.verify(refreshToken, process.env.REFRESH_TOKEN_SECRET);
-        if (!decoded) {
+        const decodedToken = jwt.verify(incomingRefreshToken, process.env.REFRESH_TOKEN_SECRET);
+        if (!decodedToken) {
             return res.status(401).json({ success: false, message: "Unauthorized-Invalid token" })
         }
         const storedToken = await redis.get(`refresh_token:${decoded.userId}`)
-        if (!storedToken || storedToken !== refreshToken) {
+        if (!storedToken || storedToken !== incomingRefreshToken) {
             return res.status(401).json({ success: false, message: "Unauthorized-Invalid token" })
         }
-        const accessToken = jwt.sign({ userId: decoded.userId }, process.env.ACCESS_TOKEN_SECRET, {
-            expiresIn: "15m",
-        })
-        res.cookie("accessToken", accessToken, {
-            httpOnly: true,
-            secure: process.env.NODE_ENV === "production",
-            sameSite: "strict",
-            maxAge: 15 * 60 * 1000,
-        });
+        const user = await User.findById(decodedToken?._id)
+        if (!user) throw new Error("Invalid Token")
 
-        return res.status(200).json({ success: true, message: "Token refreshed successfully" })
+        const options = {
+            httpOnly: true,
+            secure: true,
+            sameSite: "strict",
+        }
+
+        const { accessToken, refreshToken } = await generateAccessAndRefreshToken(user._id)
+
+        return res
+            .status(200)
+            .cookie("accessToken", accessToken, options)
+            .cookie("refreshToken", refreshToken, options)
+            .json({
+                accessToken,
+                refreshToken
+            })
+
     } catch (error) {
         console.log(`Error refreshing token ${error.message}`)
         res.status(500).json({ success: false, message: "Error refreshing token" })

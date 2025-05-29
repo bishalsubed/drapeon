@@ -2,7 +2,7 @@ import React from 'react'
 import { Minus, Plus, Trash } from 'lucide-react'
 import { useCartStore } from '../stores/useCartStore'
 
-const CartItem = ({item}) => {
+const CartItem = ({ item }) => {
     const { updateQuantity, removeFromCart } = useCartStore();
     return (
         <div className='rounded-lg border p-4 shadow-sm border-gray-700 bg-gray-800 md:p-6'>
@@ -34,7 +34,7 @@ const CartItem = ({item}) => {
                     </div>
 
                     <div className='text-end md:order-4 md:w-32'>
-                        <p className='text-base font-bold text-orange-400'>${item.price}</p>
+                        <p className='text-base font-bold text-orange-400'>Rs.{item.price}</p>
                     </div>
                 </div>
 

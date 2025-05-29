@@ -76,19 +76,19 @@ export const useUserStore = create((set, get) => ({
     },
 
     forgotPassword: async (email) => {
-        set({ loading: true,message:null });
+        set({ loading: true, message: null });
         try {
-            const response = await axios.post(`/auth/forgot-password`, {email})
-            set({  message: response.data.message, loading: false })
+            const response = await axios.post(`/auth/forgot-password`, { email })
+            set({ message: response.data.message, loading: false })
         } catch (error) {
             set({ error: error.response.data.message || "Error sending forgot password request", loading: false, })
             throw error
         }
     },
-    resetPassword: async (token,password) => {
-        set({ loading: true, message:null });
+    resetPassword: async (token, password) => {
+        set({ loading: true, message: null });
         try {
-            const response = await axios.post(`/auth/reset-password/${token}`,{password})
+            const response = await axios.post(`/auth/reset-password/${token}`, { password })
             set({ message: response.data.message, loading: false })
         } catch (error) {
             set({ error: error.response.data.message || "Error sending forgot password request", loading: false, })
@@ -111,36 +111,52 @@ export const useUserStore = create((set, get) => ({
     },
 }));
 
-let refreshPromise = null;
+let isRefreshing = false;
+let failedQueue = [];
+
+const processQueue = (error, token) => {
+    failedQueue.forEach((prom) => {
+        if (error) {
+            prom.reject(error);
+        } else {
+            prom.resolve(token);
+        }
+    });
+
+    failedQueue = [];
+};
+
 
 axios.interceptors.response.use(
     (response) => response,
     async (error) => {
         const originalRequest = error.config;
         if (error.response?.status === 401 && !originalRequest._retry) {
-            originalRequest._retry = true;
-
-            try {
-                // If a refresh is already in progress, wait for it to complete
-                if (refreshPromise) {
-                    await refreshPromise;
+            if (isRefreshing) {
+                return new Promise(function (resolve, reject) {
+                    failedQueue.push({ resolve, reject });
+                }).then((token) => {
+                    originalRequest.headers["Authorization"] = `Bearer ${token}`;
                     return axios(originalRequest);
-                }
-
-                // Start a new refresh process
-                refreshPromise = useUserStore.getState().refreshToken();
-                await refreshPromise;
-
+                })
+                    .catch((err) => Promise.reject(err));
+            }
+            originalRequest._retry = true;
+            isRefreshing = true;
+            try {
+                const data = await useUserStore.getState().refreshToken();
+                const newAccessToken = data?.accessToken;
+                processQueue(null, newAccessToken);
+                originalRequest.headers["Authorization"] = `Bearer ${newAccessToken}`;
                 return axios(originalRequest);
-            } catch (refreshError) {
-                // If refresh fails, log the user out and notify them
+            } catch (error) {
+                processQueue(error, null);
                 useUserStore.getState().logout();
-                toast.error("Session expired. Please log in again.");
-                return Promise.reject(refreshError);
+                return Promise.reject(error);
             } finally {
-                refreshPromise = null; // Ensure this is always reset
+                isRefreshing = false;
             }
         }
         return Promise.reject(error);
     }
-);
+)

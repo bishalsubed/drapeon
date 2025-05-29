@@ -23,7 +23,6 @@ const paymentSchema = new mongoose.Schema(
         },
         paymentGateway: {
             type: String,
-            enum: ["COD", "esewa",],
             required: true,
         },
         status: {

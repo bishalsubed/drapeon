@@ -7,15 +7,19 @@ import Confetti from "react-confetti";
 
 const PurchaseSuccessPage = () => {
 	const [isProcessing, setIsProcessing] = useState(true);
-	const { clearCart } = useCartStore();
+	const { clearCart, removeFromCart } = useCartStore();
 	const [error, setError] = useState(null);
 
 	useEffect(() => {
 		const successData = new URLSearchParams(window.location.search).get("data");
+		console.log("Success data", successData)
 		const handleCheckoutSuccess = async () => {
 			try {
-				await axios.get(`/payments/complete-payment?data=${successData}`);
+				console.log("It is getting run")
+				const response = await axios.get(`/payments/complete-payment?data=${successData}`);
+				console.log("response",response.data)
 				clearCart();
+				removeFromCart("")
 			} catch (error) {
 				console.log(error);
 			} finally {
@@ -29,7 +33,7 @@ const PurchaseSuccessPage = () => {
 			setIsProcessing(false);
 			setError("No Data found in the url");
 		}
-	}, [clearCart]);
+	}, []);
 
 	if (isProcessing) return "Processing...";
 
