@@ -2,7 +2,6 @@ import express from "express";
 import dotenv from "dotenv";
 import cookieParser from "cookie-parser";
 import cors from "cors";
-import bodyParser from "body-parser";
 import path from "path";
 import helmet from "helmet";
 import rateLimit from "express-rate-limit";
@@ -24,7 +23,6 @@ const PORT = process.env.PORT;
 
 const __dirname = path.resolve();
 
-app.use(bodyParser.json());
 
 app.use(cors({
     origin: `${process.env.CLIENT_URL}`, 
