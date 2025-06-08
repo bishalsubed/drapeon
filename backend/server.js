@@ -1,16 +1,20 @@
 import express from "express";
 import dotenv from "dotenv";
-import authRoutes from "./routes/auth.route.js"
-import { dbConnect } from "./lib/dbConnect.js";
 import cookieParser from "cookie-parser";
-import productRoutes from "./routes/product.route.js"
-import cartRoutes from "./routes/cart.route.js"
-import analyticsRoutes from "./routes/analytics.route.js"
-import paymentRoutes from "./routes/payment.route.js"
-import orderRoutes from "./routes/order.route.js"
 import cors from "cors";
 import bodyParser from "body-parser";
 import path from "path";
+import helmet from "helmet";
+import rateLimit from "express-rate-limit";
+
+
+import { dbConnect } from "./lib/dbConnect.js";
+import authRoutes from "./routes/auth.route.js"
+import cartRoutes from "./routes/cart.route.js"
+import productRoutes from "./routes/product.route.js"
+import analyticsRoutes from "./routes/analytics.route.js"
+import paymentRoutes from "./routes/payment.route.js"
+import orderRoutes from "./routes/order.route.js"
 
 dotenv.config()
 
@@ -23,14 +27,24 @@ const __dirname = path.resolve();
 app.use(bodyParser.json());
 
 app.use(cors({
-    origin: 'http://localhost:5173', 
+    origin: `${process.env.CLIENT_URL}`, 
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'], 
     credentials: true 
   }));
+
+  const limiter = rateLimit({
+    windowMs: 15 * 60 * 1000,
+    max: 100,
+    message: "Too many requests from this IP, please try again later."
+});
   
 
 app.use(express.json({limit:"10mb"}));
 app.use(cookieParser());
+
+app.use(helmet());
+app.use(limiter);
+
 app.use("/api/auth",authRoutes)
 app.use("/api/products",productRoutes)
 app.use("/api/cart",cartRoutes)
