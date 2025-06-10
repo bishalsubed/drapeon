@@ -5,6 +5,7 @@ import cors from "cors";
 import path from "path";
 import helmet from "helmet";
 import rateLimit from "express-rate-limit";
+import morgan from "morgan";
 
 
 import { dbConnect } from "./lib/dbConnect.js";
@@ -41,6 +42,7 @@ app.use(express.json({limit:"10mb"}));
 app.use(cookieParser());
 
 app.use(helmet());
+app.use(morgan("dev"));
 app.use(limiter);
 
 app.use("/api/auth",authRoutes)
