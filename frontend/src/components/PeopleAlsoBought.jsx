@@ -22,7 +22,7 @@ const PeopleAlsoBought = () => {
   if (loading) return <LoadingSpinner />
   return (
     <div className='mt-8'>
-      <h3 className='text-xl font-semibold text-emerald-400'>
+      <h3 className='text-xl font-semibold text-orange-400'>
         People also bought
       </h3>
       <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">

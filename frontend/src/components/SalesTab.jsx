@@ -14,7 +14,6 @@ const SalesTab = () => {
         }
         fetchData();
     }, [fetchAllOrders, toggleCompleteStatus, deleteOrder]);
-    console.log("Orders are", orders)
 
 
     return (
@@ -62,7 +61,7 @@ const SalesTab = () => {
                             scope='col'
                             className='px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider'
                         >
-                            Status
+                            Order Status
                         </th>
                         <th
                             scope='col'
@@ -99,9 +98,9 @@ const SalesTab = () => {
                                     value={order.status}
                                     onChange={(e) => toggleCompleteStatus(order._id, e.target.value)}
                                     className='w-full mt-2 px-4 py-2 rounded-xl bg-gray-800 text-white 
-             border border-gray-600 focus:outline-none focus:ring-1
-             focus:ring-orange-500 focus:border-orange-500 
-             transition duration-150 ease-in-out shadow-sm'
+                                        border border-gray-600 focus:outline-none focus:ring-1
+                                        focus:ring-orange-500 focus:border-orange-500 
+                                        transition duration-150 ease-in-out shadow-sm'
                                     required
                                 >
                                     <option value=''>Select a category</option>
