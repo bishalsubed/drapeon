@@ -61,8 +61,8 @@ const OrderSummary = () => {
                 type='text'
                 id='voucher'
                 className='block w-full rounded-lg border border-gray-600 bg-gray-700 
-            p-2.5 text-sm text-white placeholder-gray-400 focus:border-emerald-500 
-            focus:ring-emerald-500'
+            p-2.5 text-sm text-white placeholder-gray-400 focus:border-orange-500 
+            focus:ring-orange-500 outline-none'
                 placeholder='Enter phone Number here'
                 value={phoneNumber}
                 onChange={(e) => setPhoneNumber(e.target.value)}
@@ -77,8 +77,8 @@ const OrderSummary = () => {
                 type='text'
                 id='voucher'
                 className='block w-full rounded-lg border border-gray-600 bg-gray-700 
-            p-2.5 text-sm text-white placeholder-gray-400 focus:border-emerald-500 
-            focus:ring-emerald-500'
+            p-2.5 text-sm text-white placeholder-gray-400 focus:border-orange-500 
+            focus:ring-orange-500 outline-none'
                 placeholder='Enter full Addresss here'
                 value={fullAddress}
                 onChange={(e) => setFullAddress(e.target.value)}

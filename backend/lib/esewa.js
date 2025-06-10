@@ -36,12 +36,14 @@ export const verifyEsewaPayment = async (encodedData) => {
             "Content-Type": "application/json",
         };
 
-        const data = `transaction_code=${decodedData.transaction_code},status=${decodedData.status},total_amount=${decodedData.total_amount},transaction_uuid=${decodedData.transaction_uuid},product_code=${process.env.ESEWA_PRODUCT_CODE},signed_field_names=${decodedData.signed_field_names}`;
+        const fieldNames = decodedData.signed_field_names.split(",");
+        const dataToSign = fieldNames.map((field) => `${field}=${decodedData[field]}`).join(",");
+
 
         const secretKey = process.env.ESEWA_SECRET_KEY;
         const hash = crypto
             .createHmac("sha256", secretKey)
-            .update(data)
+            .update(dataToSign)
             .digest("base64");
 
         if (hash !== decodedData.signature) {
@@ -49,14 +51,14 @@ export const verifyEsewaPayment = async (encodedData) => {
         }
 
         let reqOptions = {
-            url: `https://uat.esewa.com.np/api/epay/transaction/status/?product_code=${process.env.ESEWA_PRODUCT_CODE}&total_amount=${decodedData.total_amount}&transaction_uuid=${decodedData.transaction_uuid}`,
+            url: `https://rc.esewa.com.np/api/epay/transaction/status/?product_code=${process.env.ESEWA_PRODUCT_CODE}&total_amount=${decodedData.total_amount}&transaction_uuid=${decodedData.transaction_uuid}`,
             method: "GET",
             headers: headersList,
         };
 
 
         let response = await axios.request(reqOptions);
-
+        
         if (
             response.data.status !== "COMPLETE" ||
             response.data.transaction_uuid !== decodedData.transaction_uuid ||
