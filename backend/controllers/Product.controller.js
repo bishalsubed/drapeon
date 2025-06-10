@@ -1,5 +1,4 @@
 import cloudinary from "../lib/cloudinary.js";
-import redis from "../lib/redis.js";
 import Product from "../models/product.model.js"
 
 export const getAllProducts = async (req, res) => {
@@ -14,17 +13,11 @@ export const getAllProducts = async (req, res) => {
 
 export const getFeaturedProducts = async (req, res) => {
     try {
-        let featuredProducts = await redis.get("featured_products")
-        if (featuredProducts) {
-            return res.status(200).json({ success: true, products: JSON.parse(featuredProducts) })
-        }
-        featuredProducts = await Product.find({ isFeatured: true }).lean();
+        let featuredProducts = await Product.find({ isFeatured: true }).lean();
         if (!featuredProducts) {
             return res.status(500).json({ success: false, message: "Error getting featured products" })
         }
-        await redis.set("featured_products", JSON.stringify(featuredProducts))
         return res.status(200).json({ success: true, products: featuredProducts })
-
     }
     catch (error) {
         console.log(`Error in getting featured products ${error.message}`)
@@ -78,18 +71,19 @@ export const deleteProduct = async (req, res) => {
     }
 }
 
-export const getRecommendedProducts = async(req,res) => {
+export const getRecommendedProducts = async (req, res) => {
     try {
         const products = await Product.aggregate([
-          {  $sample: { size: 3 } },
-          {$project:{
-            _id:1,
-            title:1,
-            description:1,
-            price:1,
-            image:1
-          }
-          }
+            { $sample: { size: 3 } },
+            {
+                $project: {
+                    _id: 1,
+                    title: 1,
+                    description: 1,
+                    price: 1,
+                    image: 1
+                }
+            }
         ])
         return res.status(200).json({ success: true, products })
     } catch (error) {
@@ -97,10 +91,10 @@ export const getRecommendedProducts = async(req,res) => {
         return res.status(500).json({ success: false, message: "Error getting recommended products" })
     }
 }
-export const getProductsByCategory = async(req,res) => {
+export const getProductsByCategory = async (req, res) => {
     const category = req.params.category;
     try {
-        const products = await Product.find({category}).lean();
+        const products = await Product.find({ category }).lean();
         return res.status(200).json({ success: true, products })
     } catch (error) {
         console.log(`Error in getting products by category ${error.message}`)
@@ -108,26 +102,16 @@ export const getProductsByCategory = async(req,res) => {
     }
 }
 
-async function updateFeaturedProductCache(){
-    try {
-        const product = await Product.find({isFeatured : true}).lean()
-        await redis.set("featured_products", JSON.stringify(product))
-    } catch (error) {
-        console.log(`Error in updating featured product cache ${error.message}`)
-        return res.status(500).json("Error updating featured product cache")
-    }
-}
 
-export const toggleFeaturedProduct = async(req,res) => {
+export const toggleFeaturedProduct = async (req, res) => {
     try {
         const product = await Product.findById(req.params.id)
-        if(product){
+        if (product) {
             product.isFeatured = !product.isFeatured
-            const upadatedProduct =  await product.save()
-            await updateFeaturedProductCache();
-            return res.status(200).json({success:true, product:upadatedProduct})
+            const upadatedProduct = await product.save()
+            return res.status(200).json({ success: true, product: upadatedProduct })
         }
-        return res.status(400).json({success:false, message:"No products found"})
+        return res.status(400).json({ success: false, message: "No products found" })
     } catch (error) {
         console.log(`Error in toggling featured product ${error.message}`)
         return res.status(500).json({ success: false, message: "Error toggling featured product" })
