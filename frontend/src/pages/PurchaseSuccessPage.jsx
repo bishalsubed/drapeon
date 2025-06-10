@@ -12,12 +12,9 @@ const PurchaseSuccessPage = () => {
 
 	useEffect(() => {
 		const successData = new URLSearchParams(window.location.search).get("data");
-		console.log("Success data", successData)
 		const handleCheckoutSuccess = async () => {
 			try {
-				console.log("It is getting run")
 				const response = await axios.get(`/payments/complete-payment?data=${successData}`);
-				console.log("response",response.data)
 				clearCart();
 				removeFromCart("")
 			} catch (error) {
@@ -79,7 +76,7 @@ const PurchaseSuccessPage = () => {
 					<div className='space-y-4'>
 						<button
 							className='w-full bg-orange-600 hover:bg-orange-700 text-white font-bold py-2 px-4
-             rounded-lg transition duration-300 flex items-center justify-center'
+            rounded-lg transition duration-300 flex items-center justify-center'
 						>
 							<HandHeart className='mr-2' size={18} />
 							Thanks for trusting us!
