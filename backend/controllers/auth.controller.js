@@ -1,6 +1,5 @@
 import User from "../models/User.model.js";
 import jwt from "jsonwebtoken"
-import redis from "../lib/redis.js"
 import crypto from "crypto"
 import { sendPasswordResetEmail, sendResetSuccessEmail } from "../mailtrap/emails.js"
 
@@ -16,12 +15,8 @@ const generateAccessAndRefreshToken = async (userId) => {
         return { accessToken, refreshToken }
     } catch (error) {
         console.log("Error generating access and refresh token", error)
-        return res.status(500).json({ message: "Error generating access and refresh token" })
+        throw new Error("Error generating access and refresh token")
     }
-}
-
-const storeRefreshToken = async (userId, refreshToken) => {
-    await redis.set(`refresh_token:${userId}`, refreshToken, "EX", 7 * 24 * 60 * 60)
 }
 
 const setCookies = (res, accessToken, refreshToken) => {
@@ -36,6 +31,7 @@ const setCookies = (res, accessToken, refreshToken) => {
         sameSite: "strict",
     });
 }
+
 export const signUp = async (req, res) => {
     const { name, email, password } = req.body;
     try {
@@ -46,8 +42,6 @@ export const signUp = async (req, res) => {
         const user = await User.create({ name, email, password })
 
         const { accessToken, refreshToken } = await generateAccessAndRefreshToken(user._id)
-
-        await storeRefreshToken(user._id, refreshToken)
 
         setCookies(res, accessToken, refreshToken)
         res.status(201).json({
@@ -78,7 +72,6 @@ export const login = async (req, res) => {
 
         const { accessToken, refreshToken } = await generateAccessAndRefreshToken(user._id)
 
-        await storeRefreshToken(user._id, refreshToken)
 
         setCookies(res, accessToken, refreshToken)
         return res.status(201).json({
@@ -188,10 +181,7 @@ export const refreshToken = async (req, res) => {
         if (!decodedToken) {
             return res.status(401).json({ success: false, message: "Unauthorized-Invalid token" })
         }
-        const storedToken = await redis.get(`refresh_token:${decoded.userId}`)
-        if (!storedToken || storedToken !== incomingRefreshToken) {
-            return res.status(401).json({ success: false, message: "Unauthorized-Invalid token" })
-        }
+
         const user = await User.findById(decodedToken?._id)
         if (!user) throw new Error("Invalid Token")
 
