@@ -6,7 +6,7 @@ export const getOrderById = async (req, res) => {
         if (!orderId) {
             return res.status(400).json({ success: false, message: "Order ID is required" });
         }
-        const order = await Order.findById(orderId).populate("user", "name email").populate("products.product", "title price image category")
+        const order = await Order.findById(orderId).populate("user", "name email").populate("products.product", "title image category")
         return res.status(200).json({ success: true, order });
     } catch (error) {
         console.log(`Error in getting order by ID: ${error.message}`);
@@ -16,7 +16,7 @@ export const getOrderById = async (req, res) => {
 
 export const getAllOrders = async (req, res) => {
     try {
-        const orders = await Order.find({}).populate("user", "name email").populate("products.product", "title price image category")
+        const orders = await Order.find({}).populate("user", "name email").populate("products.product", "title image category")
         return res.status(200).json({success:true, orders})
     } catch (error) {
         console.log(`Error in getting all order: ${error.message}`);
