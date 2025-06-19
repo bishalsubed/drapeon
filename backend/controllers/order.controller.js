@@ -30,10 +30,11 @@ export const deleteOrder = async(req, res) => {
         if (!orderId) {
             return res.status(400).json({ success: false, message: "Order ID is required" });
         }
-        const order = await Order.findByIdAndDelete(orderId);
+        const order = await Order.findById(orderId);
         if (!order) {
             return res.status(404).json({ success: false, message: "Order not found" });
         }
+        await Order.findByIdAndDelete(orderId);
         return res.status(200).json({ success: true, message: "Order deleted successfully" });
     } catch (error) {
         console.log(`Error in deleting order: ${error.message}`);
