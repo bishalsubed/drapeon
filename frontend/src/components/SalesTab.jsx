@@ -1,24 +1,20 @@
-import React, { useEffect } from 'react'
+import { useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { Info, Trash } from 'lucide-react'
 import { useOrderStore } from '../stores/useOrderStore'
 import { Link } from 'react-router-dom'
 
 const SalesTab = () => {
-    const { fetchAllOrders, toggleCompleteStatus, deleteOrder, orders } = useOrderStore();
+    const { fetchAllOrders, toggleCompleteStatus, orders, deleteOrder } = useOrderStore();
     const statuses = ["pending", "delivered", "cancelled"]
 
     useEffect(() => {
-        async function fetchData() {
-            await fetchAllOrders();
-        }
-        fetchData();
-    }, [fetchAllOrders, toggleCompleteStatus, deleteOrder]);
-
+        fetchAllOrders();
+    }, [deleteOrder, toggleCompleteStatus]);
 
     return (
         <motion.div
-            className='bg-gray-800 shadow-lg rounded-lg overflow-hidden max-w-5xl mx-auto'
+            className='bg-gray-800 shadow-lg rounded-lg overflow-hidden max-w-7xl mx-auto'
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8 }}>
@@ -73,7 +69,7 @@ const SalesTab = () => {
                 </thead>
 
                 <tbody className='bg-gray-800 divide-y divide-gray-700'>
-                    {Array.isArray(orders) && orders?.map((order) => (
+                    {orders?.length>0 && orders?.map((order) => (
                         <tr key={order._id} className='hover:bg-gray-700'>
                             <td className='px-6 py-4 whitespace-nowrap'>
                                 <div className='text-sm text-gray-300'>{order._id.slice(0, 8)}</div>
@@ -103,7 +99,7 @@ const SalesTab = () => {
                                         transition duration-150 ease-in-out shadow-sm'
                                     required
                                 >
-                                    <option value=''>Select a category</option>
+                                    <option value=''>Select the order status</option>
                                     {statuses.map((status) => (
                                         <option key={status} value={status}>
                                             {status.charAt(0).toUpperCase() + status.slice(1)}

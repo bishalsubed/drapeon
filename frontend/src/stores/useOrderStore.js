@@ -17,7 +17,7 @@ export const useOrderStore = create((set) => ({
         } catch (error) {
             console.log(`Error in fetching orders ${error.message}`)
             toast.error(error.message)
-        }finally{
+        } finally {
             set({ loading: false })
         }
     },
@@ -30,44 +30,44 @@ export const useOrderStore = create((set) => ({
         } catch (error) {
             console.log(`Error in fetching orders by category ${error.message}`)
             toast.error(error.message)
-        }finally{
-            set({loading:false})
+        } finally {
+            set({ loading: false })
         }
     },
-    
+
     toggleCompleteStatus: async (orderId, status) => {
         set({ loading: true });
         try {
-            const res  = await axios.patch(`/orders/${orderId}`, {status})
+            await axios.patch(`/orders/${orderId}`, { status })
             set((prevOrder) => ({
-                orders: prevOrder.orders.map((order) => 
-                    order._id === orderId ? { ...order, status } : order
-                )
+                orders: prevOrder.orders.map((order) => {
+                    return order._id === orderId ? { ...order, status } : order
+                })
             }))
             toast.success("Order status updated successfully")
         } catch (error) {
             console.log(`Error in toggling featured product ${error.message}`)
             toast.error(error.message)
-        }finally{
+        } finally {
             set({ loading: false })
         }
     },
-    
+
     deleteOrder: async (orderId) => {
         set({ loading: true });
         try {
-            const res  = await axios.delete(`/orders/${orderId}`)
-            set((prevOrders)=> ({
-                orders: prevOrders.orders.filter((order)=> {
-                    order.id !== productId    
-                })
-            }))
+            await axios.delete(`/orders/${orderId}`)
+            set((prevOrders) => ({
+                orders: prevOrders.orders.filter((order) => order._id !== orderId)
+            })
+            )
+            toast.success("Credential deleted successfully!");
         } catch (error) {
-            console.log(`Error in deleting product ${error.message}`)
+            console.log(`Error in deleting order ${error.message}`)
             toast.error(error.message)
-        }finally{
+        } finally {
             set({ loading: false })
         }
-    }, 
+    },
 
 }))
