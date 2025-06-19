@@ -20,7 +20,6 @@ const OrderDetails = () => {
         }
         fetchData();
     }, [orderId, fetchOrderById])
-    console.log("Orders", orders.products)
 
     const handleDeleteOrder = async (orderId) => {
         if (window.confirm("Are you sure you want to delete this order?")) {
