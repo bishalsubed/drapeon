@@ -47,9 +47,17 @@ app.use(cookieParser());
 app.use(helmet.contentSecurityPolicy({
   directives: {
     defaultSrc: ["'self'"],
-    imgSrc: ["'self'", "data:", "https://res.cloudinary.com"]
+    scriptSrc: ["'self'"],
+    styleSrc: ["'self'", "'unsafe-inline'"],
+    imgSrc: ["'self'", "data:", "https://res.cloudinary.com"],
+    connectSrc: ["'self'", "https://api.geoapify.com"],
+    formAction: ["'self'", "https://rc-epay.esewa.com.np"],
+    fontSrc: ["'self'"],
+    objectSrc: ["'none'"],
+    upgradeInsecureRequests: []
   }
 }));
+
 app.use(morgan("dev"));
 app.use(limiter);
 
