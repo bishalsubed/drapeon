@@ -26,41 +26,46 @@ const __dirname = path.resolve();
 
 
 app.use(cors({
-    origin: `${process.env.CLIENT_URL}`, 
-    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'], 
-    credentials: true 
-  }));
+  origin: `${process.env.CLIENT_URL}`,
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+  credentials: true
+}));
 
-  const limiter = rateLimit({
-    windowMs: 15 * 60 * 1000,
-    max: 100,
-    message: "Too many requests from this IP, please try again later."
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 100,
+  message: "Too many requests from this IP, please try again later."
 });
-  
 
-app.use(express.json({limit:"10mb"}));
+
+app.use(express.json({ limit: "10mb" }));
 app.use(cookieParser());
 
-app.use(helmet());
+app.use(helmet.contentSecurityPolicy({
+  directives: {
+    defaultSrc: ["'self'"],
+    imgSrc: ["'self'", "data:", "https://res.cloudinary.com"]
+  }
+}));
 app.use(morgan("dev"));
 app.use(limiter);
 
-app.use("/api/auth",authRoutes)
-app.use("/api/products",productRoutes)
-app.use("/api/cart",cartRoutes)
-app.use("/api/analytics",analyticsRoutes)
-app.use("/api/payments",paymentRoutes) 
-app.use("/api/orders",orderRoutes) 
+app.use("/api/auth", authRoutes)
+app.use("/api/products", productRoutes)
+app.use("/api/cart", cartRoutes)
+app.use("/api/analytics", analyticsRoutes)
+app.use("/api/payments", paymentRoutes)
+app.use("/api/orders", orderRoutes)
 
-if(process.env.NODE_ENV === "production"){
-  app.use(express.static(path.join(__dirname,"/frontend/dist")));
+if (process.env.NODE_ENV === "production") {
+  app.use(express.static(path.join(__dirname, "/frontend/dist")));
 
-  app.get("*",(req,res)=>{
-    res.sendFile(path.resolve(__dirname,"frontend","dist","index.html"));
+  app.get("*", (req, res) => {
+    res.sendFile(path.resolve(__dirname, "frontend", "dist", "index.html"));
   })
 }
 
-app.listen(PORT, ()=>{
-    console.log(`Server is running on the PORT:${PORT}`)
-    dbConnect();
+app.listen(PORT, () => {
+  console.log(`Server is running on the PORT:${PORT}`)
+  dbConnect();
 })
