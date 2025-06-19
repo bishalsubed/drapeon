@@ -126,7 +126,7 @@ const OrderSummary = () => {
               required
             />
           </div>
-          <div>
+          <div ref={provinceAddressRef}>
             <label htmlFor='province-address' className='mb-2 block text-sm font-medium text-gray-300'>
               State/Province Address
             </label>
@@ -138,7 +138,6 @@ const OrderSummary = () => {
             focus:ring-orange-500 outline-none'
               placeholder='Enter state/province Address here'
               value={searchedAddress}
-              ref={provinceAddressRef}
               onChange={(e) => setSearchedAddress(e.target.value)}
               required
             />
