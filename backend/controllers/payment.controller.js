@@ -6,7 +6,7 @@ dotenv.config();
 
 export const initializeEsewa = async (req, res) => {
     try {
-        const { products, phoneNumber, fullAddress } = req.body;
+        const { products, phoneNumber, fullAddress, paymentMethod } = req.body;
 
         if (!Array.isArray(products) || products.length === 0) {
             return res.status(400).json({ message: "Invalid or empty products array" });
@@ -26,37 +26,73 @@ export const initializeEsewa = async (req, res) => {
                 quantity: product.quantity,
                 price: product.price,
             })),
-            paymentMethod: "esewa",
+            paymentMethod: paymentMethod,
             totalAmount: totalAmount,
             status: "pending",
         });
+        if (paymentMethod === "esewa") {
+            try {
+                const paymentInitiate = await getEsewaPaymentHash({
+                    amount: totalAmount,
+                    transaction_uuid: purchasedItemData._id,
+                });
 
-        const paymentInitiate = await getEsewaPaymentHash({
-            amount: totalAmount,
-            transaction_uuid: purchasedItemData._id,
-        });
-
-        let paymentData = {
-            amount: totalAmount,
-            failure_url: `${process.env.CLIENT_URL}/purchase-cancel`,
-            product_delivery_charge: "0",
-            product_service_charge: "0",
-            product_code: process.env.ESEWA_PRODUCT_CODE,
-            signature: paymentInitiate.signature,
-            signed_field_names: paymentInitiate.signed_field_names,
-            success_url: `${process.env.CLIENT_URL}/purchase-success`,
-            tax_amount: "0",
-            total_amount: totalAmount,
-            transaction_uuid: purchasedItemData._id,
-        };
+                let paymentData = {
+                    amount: totalAmount,
+                    failure_url: `${process.env.CLIENT_URL}/purchase-cancel/${purchasedItemData._id}`,
+                    product_delivery_charge: "0",
+                    product_service_charge: "0",
+                    product_code: process.env.ESEWA_PRODUCT_CODE,
+                    signature: paymentInitiate.signature,
+                    signed_field_names: paymentInitiate.signed_field_names,
+                    success_url: `${process.env.CLIENT_URL}/purchase-success`,
+                    tax_amount: "0",
+                    total_amount: totalAmount,
+                    transaction_uuid: purchasedItemData._id,
+                };
 
 
-        res.status(200).json({
-            success: true,
-            purchasedItemData,
-            paymentData,
-        });
+                res.status(200).json({
+                    success: true,
+                    purchasedItemData,
+                    paymentData,
+                });
+            } catch (error) {
+                console.error(`Error in processing eSewa payment: ${error.message}`);
+                return res.status(500).json({
+                    success: false,
+                    message: "An error occurred while processing the payment",
+                    error: error.message,
+                });
+            }
+        }
+        else if (paymentMethod === "cod") {
+            try {
+                const essestialPurchasedItemData={
+                    orderId: purchasedItemData._id,
+                    totalAmount: purchasedItemData.totalAmount,
+                    paymentMethod: purchasedItemData.paymentMethod,
+                }
+                const jsonString = JSON.stringify(essestialPurchasedItemData);
 
+                const base64Data = Buffer.from(jsonString).toString('base64');
+
+                const redirectUrl = `http://localhost:5173/purchase-success?encodedData=${encodeURIComponent(base64Data)}`;
+                res.status(200).json({ redirectUrl });
+            } catch (error) {
+                console.error(`Error in processing COD payment: ${error.message}`);
+                return res.status(500).json({
+                    success: false,
+                    message: "An error occurred while processing the payment",
+                    error: error.message,
+                });
+            }
+        } else {
+            return res.status(400).json({
+                success: false,
+                message: "Invalid payment method",
+            });
+        }
     } catch (error) {
         console.error(`Error in initializing eSewa payment: ${error.message}`);
         res.status(500).json({
@@ -116,6 +152,7 @@ export const completePayment = async (req, res) => {
             success: true,
             message: "Payment successful",
             paymentData,
+            purchasedItemData
         });
     } catch (error) {
         console.error(`Error in completing eSewa payment: ${error.message}`);
@@ -126,3 +163,35 @@ export const completePayment = async (req, res) => {
         });
     }
 };
+
+
+export const failedPayment = async (req, res) => {
+    try {
+        const { id } = req.params;
+
+        const purchasedItemData = await Order.findById(
+            id
+        );
+
+        if (!purchasedItemData) {
+            return res.status(500).json({
+                success: false,
+                message: "Purchase not found",
+            });
+        }
+        await Order.findByIdAndDelete(id);
+
+        res.status(200).json({
+            success: true,
+            message: "Payment failed, order has been deleted",
+            orderId: id,
+        })
+    } catch (error) {
+        console.error(`Error in handling failed payment: ${error.message}`);
+        res.status(500).json({
+            success: false,
+            message: "An error occurred while processing the failed payment",
+            error: error.message,
+        });
+    }
+}
