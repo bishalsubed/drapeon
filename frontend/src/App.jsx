@@ -51,7 +51,7 @@ function App() {
           <Route path='/category/:category' element={<CategoryPage />} />
           <Route path='/cart' element={user ? <CartPage /> : <Navigate to='/login' />} />
           <Route path='/purchase-success'	element={user ? <PurchaseSuccessPage /> : <Navigate to='/login' />}/>
-          <Route path='/purchase-cancel' element={user ? <PurchaseCancelPage /> : <Navigate to='/login' />} />
+          <Route path='/purchase-cancel/:id' element={user ? <PurchaseCancelPage /> : <Navigate to='/login' />} />
           <Route path='/forgot-password' element={<ForgotPasswordPage />} />
           <Route path='/reset-password/:token' element={user? <Navigate to='/' /> : <ResetPasswordPage />} />
         </Routes>

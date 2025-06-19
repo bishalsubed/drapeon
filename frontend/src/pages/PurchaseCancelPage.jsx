@@ -1,8 +1,36 @@
 import { XCircle, ArrowLeft } from "lucide-react";
 import { motion } from "framer-motion";
-import { Link } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
+import { useState } from "react";
+import { useEffect } from "react";
+import LoadingSpinner from "../components/LoadingSpinner";
+import axiosInstance from "../lib/axios";
 
 const PurchaseCancelPage = () => {
+	const { id } = useParams()
+	const [isProcessing, setIsProcessing] = useState(true);
+	const [error, setError] = useState(null);
+
+	useEffect(() => {
+		const handleCheckoutSuccess = async () => {
+			try {
+				await axiosInstance.get(`/payments/failed-payment/${id}`);
+			} catch (error) {
+				console.log(error);
+			} finally {
+				setIsProcessing(false);
+			}
+		};
+
+		if (id) {
+			handleCheckoutSuccess();
+		} else {
+			setIsProcessing(false);
+			setError("No id found in the url");
+		}
+	}, []);
+
+	if (isProcessing) return <LoadingSpinner />;
 	return (
 		<div className='min-h-screen flex items-center justify-center px-4'>
 			<motion.div

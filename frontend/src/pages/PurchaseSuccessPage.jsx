@@ -4,19 +4,51 @@ import { Link } from "react-router-dom";
 import { useCartStore } from "../stores/useCartStore";
 import axios from "../lib/axios";
 import Confetti from "react-confetti";
+import LoadingSpinner from "../components/LoadingSpinner";
 
 const PurchaseSuccessPage = () => {
 	const [isProcessing, setIsProcessing] = useState(true);
 	const { clearCart, removeFromCart } = useCartStore();
 	const [error, setError] = useState(null);
+	const [orderId, setOrderId] = useState("");
+	const [totalAmount, setTotalAmount] = useState(0)
+	const [paymentMethod, setPaymentMethod] = useState("")
 
 	useEffect(() => {
-		const successData = new URLSearchParams(window.location.search).get("data");
+		const searchParams = new URLSearchParams(window.location.search);
+		const successData = searchParams.get("data");
+		const successEncodedData = searchParams.get("encodedData");
+
+		const processCart = () => {
+			clearCart();
+			removeFromCart("");
+		};
+
 		const handleCheckoutSuccess = async () => {
 			try {
 				const response = await axios.get(`/payments/complete-payment?data=${successData}`);
-				clearCart();
-				removeFromCart("")
+				const data  = response.data
+				setOrderId(data.purchasedItemData._id);
+				setTotalAmount(data.purchasedItemData.totalAmount);
+				setPaymentMethod(data.purchasedItemData.paymentMethod);
+				processCart();
+
+			} catch (error) {
+				console.log(error);
+			} finally {
+				setIsProcessing(false);
+			}
+		};
+		const handleCodCheckoutSuccess = async () => {
+			try {
+				const decoded = JSON.parse(atob(successEncodedData));
+				if (!decoded?.orderId) {
+					throw new Error("Invalid COD data");
+				}
+				setOrderId(decoded.orderId);
+				setTotalAmount(decoded.totalAmount);
+				setPaymentMethod(decoded.paymentMethod);
+				processCart();
 			} catch (error) {
 				console.log(error);
 			} finally {
@@ -26,13 +58,15 @@ const PurchaseSuccessPage = () => {
 
 		if (successData) {
 			handleCheckoutSuccess();
+		} else if (successEncodedData) {
+			handleCodCheckoutSuccess();
 		} else {
 			setIsProcessing(false);
 			setError("No Data found in the url");
 		}
 	}, []);
 
-	if (isProcessing) return "Processing...";
+	if (isProcessing) return <LoadingSpinner />;
 
 	if (error) return `Error: ${error}`;
 
@@ -65,7 +99,15 @@ const PurchaseSuccessPage = () => {
 					<div className='bg-gray-700 rounded-lg p-4 mb-6'>
 						<div className='flex items-center justify-between mb-2'>
 							<span className='text-sm text-gray-400'>Order number</span>
-							<span className='text-sm font-semibold text-orange-400'>#12345</span>
+							<span className='text-sm font-semibold text-orange-400'>{orderId}</span>
+						</div>
+						<div className='flex items-center justify-between mb-2'>
+							<span className='text-sm text-gray-400'>Total Amount </span>
+							<span className='text-sm font-semibold text-orange-400'>Rs.{totalAmount}</span>
+						</div>
+						<div className='flex items-center justify-between mb-2'>
+							<span className='text-sm text-gray-400'>Payment Method </span>
+							<span className='text-sm font-semibold text-orange-400'>{paymentMethod.slice(0, 1).toUpperCase() + paymentMethod.slice(1)}</span>
 						</div>
 						<div className='flex items-center justify-between'>
 							<span className='text-sm text-gray-400'>Estimated delivery</span>
