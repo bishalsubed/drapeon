@@ -10,17 +10,20 @@ import LoadingSpinner from './components/LoadingSpinner'
 import AdminPage from './pages/AdminPage'
 import CategoryPage from './pages/CategoryPage'
 import CartPage from './pages/CartPage'
+import MyOrdersPage from './pages/MyOrdersPage'
 import { useCartStore } from './stores/useCartStore'
 import PurchaseSuccessPage from './pages/PurchaseSuccessPage'
 import PurchaseCancelPage from './pages/PurchaseCancelPage'
 import ForgotPasswordPage from './pages/ForgotPasswordPage'
 import ResetPasswordPage from './pages/ResetPasswordPage'
 import OrderDetails from './components/OrderDetails'
+import { useOrderStore } from './stores/useOrderStore'
 
 function App() {
 
   const { user, checkAuth, checkingAuth } = useUserStore();
   const { getCartItems } = useCartStore();
+  const { getUserOrders } = useOrderStore();
 
   useEffect(() => {
     checkAuth();
@@ -30,6 +33,11 @@ function App() {
     if (!user) return;
     getCartItems();
   }, [user,getCartItems])
+  
+  useEffect(() => {
+    if (!user) return;
+    getUserOrders();
+  }, [user,getUserOrders])
 
   if (checkingAuth) return <LoadingSpinner />;
 
@@ -50,6 +58,7 @@ function App() {
           <Route path='/secret-dashboard/order/:orderId' element={user?.role === 'admin' ? <OrderDetails /> : <Navigate to='/' />} />
           <Route path='/category/:category' element={<CategoryPage />} />
           <Route path='/cart' element={user ? <CartPage /> : <Navigate to='/login' />} />
+          <Route path='/myorders' element={user ? <MyOrdersPage /> : <Navigate to='/login' />} />
           <Route path='/purchase-success'	element={user ? <PurchaseSuccessPage /> : <Navigate to='/login' />}/>
           <Route path='/purchase-cancel/:id' element={user ? <PurchaseCancelPage /> : <Navigate to='/login' />} />
           <Route path='/forgot-password' element={<ForgotPasswordPage />} />

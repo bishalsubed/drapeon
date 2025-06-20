@@ -70,4 +70,16 @@ export const useOrderStore = create((set) => ({
         }
     },
 
+    getUserOrders: async () => {
+        set({ loading: true });
+        try {
+            const res = await axios.get(`/orders/of-user`)
+            set({ orders: res.data.orders })
+        } catch (error) {
+            console.log(`Error in deleting order ${error.message}`)
+            toast.error(error.message)
+        } finally {
+            set({ loading: false })
+        }
+    },
 }))

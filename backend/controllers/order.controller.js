@@ -24,6 +24,16 @@ export const getAllOrders = async (req, res) => {
     }
 }
 
+export const getUserOrders = async (req, res) => {
+    try {
+        const orders = await Order.find({user:req.user._id}).populate("user", "name email").populate("products.product", "title image category")
+        return res.status(200).json({success:true, orders})
+    } catch (error) {
+        console.log(`Error in getting all order: ${error.message}`);
+        res.status(500).json({ success: false, message: "Error in getting all order" });
+    }
+}
+
 export const deleteOrder = async(req, res) => {
     try {
         const {orderId} = req.params;

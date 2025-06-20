@@ -1,12 +1,14 @@
 import React from 'react'
 import { Link } from 'react-router-dom'
-import { Lock, UserPlus, LogOut, LogIn, ShoppingCart, } from 'lucide-react'
+import { Lock, UserPlus, LogOut, LogIn, ShoppingCart, Package } from 'lucide-react'
 import { useUserStore } from '../stores/useUserStore'
 import { useCartStore } from '../stores/useCartStore'
+import { useOrderStore } from '../stores/useOrderStore'
 const Navbar = () => {
     const { user, logout } = useUserStore();
     const isAdmin = user?.role === "admin";
     const { cart } = useCartStore();
+    const { orders } = useOrderStore();
     const User = user ? true : false
 
     return (
@@ -25,22 +27,40 @@ const Navbar = () => {
                             Home
                         </Link>
                         {user && (
-                            <Link
-                                to={"/cart"}
-                                className='relative group text-gray-300 hover:text-orange-400 transition duration-300 
+                            <>
+                                <Link
+                                    to={"/cart"}
+                                    className='relative group text-gray-300 hover:text-orange-400 transition duration-300 
 							ease-in-out'
-                            >
-                                <ShoppingCart className='inline-block mr-1 group-hover:text-orange-400' size={20} />
-                                <span className='hidden sm:inline'>Cart</span>
-                                {cart.length > 0 && (
-                                    <span
-                                        className='absolute -top-2 -left-2 bg-orange-500 text-white rounded-full px-2 py-0.5 
+                                >
+                                    <ShoppingCart className='inline-block mr-1 group-hover:text-orange-400' size={20} />
+                                    <span className='hidden sm:inline'>Cart</span>
+                                    {cart.length > 0 && (
+                                        <span
+                                            className='absolute -top-2 -left-2 bg-orange-500 text-white rounded-full px-2 py-0.5 
 									text-xs group-hover:bg-orange-400 transition duration-300 ease-in-out'
-                                    >
-                                        {cart.length}
-                                    </span>
-                                )}
-                            </Link>
+                                        >
+                                            {cart.length}
+                                        </span>
+                                    )}
+                                </Link>
+                                <Link
+                                    to={"/myorders"}
+                                    className='relative group bg-orange-700 hover:bg-orange-600 text-white px-3 py-1 rounded-md font-medium
+								 transition duration-300 ease-in-out flex items-center'
+                                >
+                                    <Package className='inline-block mr-1 group-hover:text-orange-400' size={20} />
+                                    <span className='hidden sm:inline'>My Orders</span>
+                                    {orders.length > 0 && (
+                                        <span
+                                            className='absolute -top-2 -left-2 bg-orange-500 text-white rounded-full px-2 py-0.5 
+									text-xs group-hover:bg-orange-400 transition duration-300 ease-in-out'
+                                        >
+                                            {orders.length}
+                                        </span>
+                                    )}
+                                </Link>
+                            </>
                         )}
                         {isAdmin && (
                             <Link
