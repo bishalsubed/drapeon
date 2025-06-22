@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect } from 'react'
 import { Routes, Route, Navigate } from 'react-router-dom'
 import HomePage from './pages/HomePage'
 import SignUpPage from './pages/SignUpPage'
@@ -17,13 +17,13 @@ import PurchaseCancelPage from './pages/PurchaseCancelPage'
 import ForgotPasswordPage from './pages/ForgotPasswordPage'
 import ResetPasswordPage from './pages/ResetPasswordPage'
 import OrderDetails from './components/OrderDetails'
-import { useOrderStore } from './stores/useOrderStore'
+import MyOrderDetailsPage from './pages/MyOrderDetailsPage'
 
 function App() {
 
   const { user, checkAuth, checkingAuth } = useUserStore();
   const { getCartItems } = useCartStore();
-  const { getUserOrders } = useOrderStore();
+  
 
   useEffect(() => {
     checkAuth();
@@ -34,11 +34,7 @@ function App() {
     getCartItems();
   }, [user,getCartItems])
   
-  useEffect(() => {
-    if (!user) return;
-    getUserOrders();
-  }, [user,getUserOrders])
-
+  
   if (checkingAuth) return <LoadingSpinner />;
 
   return (
@@ -58,7 +54,8 @@ function App() {
           <Route path='/secret-dashboard/order/:orderId' element={user?.role === 'admin' ? <OrderDetails /> : <Navigate to='/' />} />
           <Route path='/category/:category' element={<CategoryPage />} />
           <Route path='/cart' element={user ? <CartPage /> : <Navigate to='/login' />} />
-          <Route path='/myorders' element={user ? <MyOrdersPage /> : <Navigate to='/login' />} />
+          <Route path='/my-orders' element={user ? <MyOrdersPage /> : <Navigate to='/login' />} />
+          <Route path='/my-order/:id' element={user ? <MyOrderDetailsPage /> : <Navigate to='/login' />} />
           <Route path='/purchase-success'	element={user ? <PurchaseSuccessPage /> : <Navigate to='/login' />}/>
           <Route path='/purchase-cancel/:id' element={user ? <PurchaseCancelPage /> : <Navigate to='/login' />} />
           <Route path='/forgot-password' element={<ForgotPasswordPage />} />
