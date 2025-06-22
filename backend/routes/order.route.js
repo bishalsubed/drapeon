@@ -6,7 +6,7 @@ const router = express.Router();
 
 router.get("/", protectRoute, adminRoute,getAllOrders)
 router.get("/of-user", protectRoute,getUserOrders)
-router.get("/:orderId", protectRoute, adminRoute,getOrderById)
+router.get("/id/:orderId", protectRoute,getOrderById)
 router.patch("/:orderId", protectRoute, adminRoute,changeOrderStatus)
 router.delete("/:orderId", protectRoute, adminRoute,deleteOrder)
 
