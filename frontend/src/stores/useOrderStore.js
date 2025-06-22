@@ -4,6 +4,7 @@ import axios from "../lib/axios";
 
 export const useOrderStore = create((set) => ({
     orders: [],
+    order:null,
     loading: false,
     error: null,
 
@@ -25,8 +26,8 @@ export const useOrderStore = create((set) => ({
     fetchOrderById: async (orderId) => {
         set({ loading: true })
         try {
-            const res = await axios.get(`/orders/${orderId}`)
-            set({ orders: res.data.order })
+            const res = await axios.get(`/orders/id/${orderId}`)
+            set({ order: res.data.order })
         } catch (error) {
             console.log(`Error in fetching orders by category ${error.message}`)
             toast.error(error.message)
