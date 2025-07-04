@@ -6,7 +6,7 @@ import { cn } from "../lib/utils";
 
 const MyOrderDetailsPage = () => {
 
-    const { fetchOrderById, order } = useOrderStore();
+    const { fetchOrderById, order, toggleCompleteStatus } = useOrderStore();
     const { id } = useParams();
     const navigate = useNavigate();
 
@@ -23,10 +23,17 @@ const MyOrderDetailsPage = () => {
 
     if (!order) return <p className="text-white text-center mt-10">Order not found.</p>;
 
+    const isOrderOlderThan24Hours = () => {
+        const orderedDate = new Date(order.createdAt);
+        const currentDate = new Date();
+        const timeDifference = currentDate - orderedDate;   
+        return timeDifference > 24 * 60 * 60 * 1000;
+    }
+
 
     return (
         <motion.div
-            className="max-w-5xl mx-auto mt-10 px-4"
+            className="max-w-5xl mx-auto mt-10 p-4"
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4 }}
@@ -98,11 +105,16 @@ const MyOrderDetailsPage = () => {
                 </div>
 
                 {order.status === "pending" && (
-                    <div className="text-right">
-                        <button className="bg-red-500 hover:bg-red-600 text-white px-5 py-2 rounded-lg transition text-sm font-medium">
-                            Cancel Order
-                        </button>
-                    </div>
+                    <>
+                        <div className="text-right">
+                            <button type="button" disabled={isOrderOlderThan24Hours()} className="bg-red-500 hover:bg-red-600 text-white px-5 py-2 rounded-lg transition text-sm font-medium disabled:bg-red-500 disabled:cursor-not-allowed disabled:opacity-50" onClick={() => toggleCompleteStatus(order._id, "cancelled")}>
+                                Cancel Order
+                            </button>
+                        </div>
+                        {isOrderOlderThan24Hours() && (<p className='mt-8 text-center text-base font-sans text-red-400'>
+                            Note: You can cancel this order only within 24hrs of the pending state.
+                        </p>)}
+                    </>
                 )}
             </div>
         </motion.div>
