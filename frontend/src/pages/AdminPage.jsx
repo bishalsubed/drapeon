@@ -1,12 +1,8 @@
-import React from 'react'
+import { NavLink, Outlet } from 'react-router-dom'
 import { BarChart, PlusCircle, ShoppingBasket, SquareChartGantt } from 'lucide-react';
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { motion } from "framer-motion";
-import CreateProductForm from '../components/CreateProductForm';
-import ProductsList from '../components/ProductsList';
-import AnalyticsTab from '../components/AnalyticsTab';
 import { useProductStore } from '../stores/useProductStore';
-import SalesTab from '../components/SalesTab';
 
 const tabs = [
     { id: "create", label: "Create Product", icon: PlusCircle },
@@ -17,14 +13,12 @@ const tabs = [
 
 
 const AdminPage = () => {
-    const [activeTab, setActiveTab] = useState("create")
-    
-    const {fetchAllProducts} = useProductStore();
-    
+    const { fetchAllProducts } = useProductStore();
+
     useEffect(() => {
         fetchAllProducts();
     }, [fetchAllProducts])
-    
+
     return (
         <div className='min-h-screen relative overflow-hidden'>
             <div className='relative z-10 container mx-auto px-4 py-16'>
@@ -38,25 +32,22 @@ const AdminPage = () => {
                 </motion.h1>
             </div>
             <div className='flex justify-center mb-8'>
-					{tabs.map((tab) => (
-						<button
-							key={tab.id}
-							onClick={() => setActiveTab(tab.id)}
-							className={`flex items-center px-4 py-2 mx-2 rounded-md transition-colors duration-200 ${
-								activeTab === tab.id
-									? "bg-orange-600 text-white"
-									: "bg-gray-700 text-gray-300 hover:bg-gray-600"
-							}`}
-						>
-							<tab.icon className='mr-2 h-5 w-5' />
-							{tab.label}
-						</button>
-					))}
-				</div>
-				{activeTab === "create" && <CreateProductForm />}
-				{activeTab === "products" && <ProductsList />}
-				{activeTab === "analytics" && <AnalyticsTab />}
-				{activeTab === "orders" && <SalesTab />}
+                {tabs.map((tab) => (
+                    <NavLink
+                        key={tab.id}
+                        to={`${tab.id}`}
+                        className={({ isActive }) =>
+                            `flex items-center px-4 py-2 mx-2 rounded-md transition-colors
+                    ${isActive ? 'bg-orange-600 text-white' : 'bg-gray-700 text-gray-300 hover:bg-gray-600'}`
+                        }
+                    >
+                        <tab.icon className='mr-2 h-5 w-5' />
+                        {tab.label}
+                    </NavLink>
+                ))}
+            </div>
+            
+            <Outlet />
         </div>
     )
 }

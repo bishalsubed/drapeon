@@ -18,12 +18,16 @@ import ForgotPasswordPage from './pages/ForgotPasswordPage'
 import ResetPasswordPage from './pages/ResetPasswordPage'
 import OrderDetails from './components/OrderDetails'
 import MyOrderDetailsPage from './pages/MyOrderDetailsPage'
+import CreateProductForm from './components/CreateProductForm';
+import ProductsList from './components/ProductsList';
+import AnalyticsTab from './components/AnalyticsTab';
+import SalesTab from './components/SalesTab';
 
 function App() {
 
   const { user, checkAuth, checkingAuth } = useUserStore();
   const { getCartItems } = useCartStore();
-  
+
 
   useEffect(() => {
     checkAuth();
@@ -32,9 +36,9 @@ function App() {
   useEffect(() => {
     if (!user) return;
     getCartItems();
-  }, [user,getCartItems])
-  
-  
+  }, [user, getCartItems])
+
+
   if (checkingAuth) return <LoadingSpinner />;
 
   return (
@@ -50,16 +54,23 @@ function App() {
           <Route path='/' element={user ? <HomePage /> : <Navigate to='/login' />} />
           <Route path='/signup' element={!user ? <SignUpPage /> : <Navigate to='/' />} />
           <Route path='/login' element={!user ? <LoginPage /> : <Navigate to='/' />} />
-          <Route path='/secret-dashboard' element={user?.role === 'admin' ? <AdminPage /> : <Navigate to='/' />} />
           <Route path='/secret-dashboard/order/:orderId' element={user?.role === 'admin' ? <OrderDetails /> : <Navigate to='/' />} />
           <Route path='/category/:category' element={<CategoryPage />} />
           <Route path='/cart' element={user ? <CartPage /> : <Navigate to='/login' />} />
           <Route path='/my-orders' element={user ? <MyOrdersPage /> : <Navigate to='/login' />} />
           <Route path='/my-order/:id' element={user ? <MyOrderDetailsPage /> : <Navigate to='/login' />} />
-          <Route path='/purchase-success'	element={user ? <PurchaseSuccessPage /> : <Navigate to='/login' />}/>
+          <Route path='/purchase-success' element={user ? <PurchaseSuccessPage /> : <Navigate to='/login' />} />
           <Route path='/purchase-cancel/:id' element={user ? <PurchaseCancelPage /> : <Navigate to='/login' />} />
           <Route path='/forgot-password' element={<ForgotPasswordPage />} />
-          <Route path='/reset-password/:token' element={user? <Navigate to='/' /> : <ResetPasswordPage />} />
+          <Route path='/reset-password/:token' element={user ? <Navigate to='/' /> : <ResetPasswordPage />} />
+          <Route path='/secret-dashboard/*' element={user?.role === 'admin' ? <AdminPage /> : <Navigate to='/' />} >
+            <Route index element={<Navigate to="create" replace />} />
+
+            <Route path="create" element={<CreateProductForm />} />
+            <Route path="products" element={<ProductsList />} />
+            <Route path="analytics" element={<AnalyticsTab />} />
+            <Route path="orders" element={<SalesTab />} />
+          </Route>
         </Routes>
       </div>
       <Toaster />
