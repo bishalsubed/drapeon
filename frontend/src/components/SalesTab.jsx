@@ -5,127 +5,105 @@ import { useOrderStore } from '../stores/useOrderStore'
 import { Link } from 'react-router-dom'
 
 const SalesTab = () => {
-    const { fetchAllOrders, toggleCompleteStatus, orders, deleteOrder } = useOrderStore();
-    const statuses = ["pending", "delivered", "cancelled"]
+    const { fetchAllOrders, toggleCompleteStatus, orders, deleteOrder } = useOrderStore()
+    const statuses = ['pending', 'delivered', 'cancelled']
 
     useEffect(() => {
-        fetchAllOrders();
-    }, [deleteOrder, toggleCompleteStatus]);
+        fetchAllOrders()
+    }, [deleteOrder, toggleCompleteStatus])
+
+    const STATUS_COLORS = {
+        pending: 'bg-yellow-400 text-black',
+        cancelled: 'bg-red-600 text-white',
+        delivered: 'bg-green-500 text-white',
+    }
 
     return (
         <motion.div
-            className='bg-gray-800 shadow-lg rounded-lg overflow-hidden max-w-7xl mx-auto'
+            className="bg-gray-900 rounded-2xl shadow-xl overflow-x-auto border border-gray-800 max-w-7xl mx-auto"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8 }}>
-            {orders.length >0 ?
-                (<table className=' min-w-full divide-y divide-gray-700'>
-                <thead className='bg-gray-700'>
-                    <tr>
-                        <th
-                            scope='col'
-                            className='px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider'
-                        >
-                            Order Id
-                        </th>
-                        <th
-                            scope='col'
-                            className='px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider'
-                        >
-                            Contact
-                        </th>
-                        <th
-                            scope='col'
-                            className='px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider'
-                        >
-                            Fee
-                        </th>
-                        <th
-                            scope='col'
-                            className='px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider'
-                        >
-                            Destination
-                        </th>
-                        <th
-                            scope='col'
-                            className='px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider'
-                        >
-                            Email
-                        </th>
-
-                        <th
-                            scope='col'
-                            className='px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider'
-                        >
-                            Order Status
-                        </th>
-                        <th
-                            scope='col'
-                            className='px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider'
-                        >
-                            Actions
-                        </th>
-                    </tr>
-                </thead>
-
-                <tbody className='bg-gray-800 divide-y divide-gray-700'>
-                    {orders?.length>0 && orders?.map((order) => (
-                        <tr key={order._id} className='hover:bg-gray-700'>
-                            <td className='px-6 py-4 whitespace-nowrap'>
-                                <div className='text-sm text-gray-300'>{order._id.slice(0, 8)}</div>
-                            </td>
-                            <td className='px-6 py-4 whitespace-nowrap'>
-                                <div className='text-sm font-medium text-white'>{order.phoneNumber}</div>
-                                <p className="text-sm text-gray-400 font-semibold">{order?.user?.name}</p>
-                            </td>
-                            <td className='px-6 py-4 whitespace-nowrap'>
-                                <div className='text-sm text-gray-300'>Rs.{order.totalAmount}</div>
-                            </td>
-                            <td className='px-6 py-4 whitespace-nowrap'>
-                                <div className='text-sm text-gray-300'>{order.fullAddress}</div>
-                            </td>
-                            <td className='px-6 py-4 whitespace-nowrap'>
-                                <div className='text-sm text-gray-300'>{order.user.email}</div>
-                            </td>
-                            <td className='px-6 py-4 whitespace-nowrap'>
-                                <select
-                                    id='category'
-                                    name='category'
-                                    value={order.status}
-                                    onChange={(e) => toggleCompleteStatus(order._id, e.target.value)}
-                                    className='w-full mt-2 px-4 py-2 rounded-xl bg-gray-800 text-white 
-                                        border border-gray-600 focus:outline-none focus:ring-1
-                                        focus:ring-orange-500 focus:border-orange-500 
-                                        transition duration-150 ease-in-out shadow-sm'
-                                    required
+            transition={{ duration: 0.8 }}
+        >
+            {orders.length > 0 ? (
+                <table className="min-w-full divide-y divide-gray-800">
+                    <thead className="bg-gray-800 sticky top-0 z-10">
+                        <tr>
+                            {[
+                                'Order ID',
+                                'Contact',
+                                'Fee',
+                                'Destination',
+                                'Email',
+                                'Status',
+                                'Actions',
+                            ].map((heading) => (
+                                <th
+                                    key={heading}
+                                    className="px-6 py-4 text-left text-xs font-semibold tracking-wider text-gray-400 uppercase"
                                 >
-                                    <option value=''>Select the order status</option>
-                                    {statuses.map((status) => (
-                                        <option key={status} value={status}>
-                                            {status.charAt(0).toUpperCase() + status.slice(1)}
-                                        </option>
-                                    ))}
-                                </select>
-                            </td>
-                            <td className='px-6 py-4 whitespace-nowrap text-sm font-medium'>
-                                <div className="flex justify-center items-center gap-4">
-                                    <Link to={`/secret-dashboard/order/${order._id}`}><button
-                                        className='text-orange-100 hover:text-orange-300'
-                                    >
-                                        <Info className='h-5 w-5 mt-2' />
-                                    </button></Link>
-                                    <button
-                                        onClick={() => deleteOrder(order._id)}
-                                        className='text-red-400 hover:text-red-300'
-                                    >
-                                        <Trash className='h-5 w-5' />
-                                    </button>
-                                </div>
-                            </td>
+                                    {heading}
+                                </th>
+                            ))}
                         </tr>
-                    ))}
-                </tbody>
-            </table>): (<p className='text-center text-gray-400 font-semibold p-8'>No Orders Found</p>)}
+                    </thead>
+                    <tbody className="divide-y divide-gray-800 bg-gray-900">
+                        {orders.map((order) => (
+                            <tr
+                                key={order._id}
+                                className="hover:bg-gray-800/70 transition duration-200"
+                            >
+                                <td className="px-6 py-4 whitespace-nowrap">
+                                    <p className="text-sm text-gray-300">{order._id.slice(0, 8)}</p>
+                                </td>
+                                <td className="px-6 py-4 whitespace-nowrap">
+                                    <p className="text-sm font-medium text-white">
+                                        {order.phoneNumber}
+                                    </p>
+                                    <p className="text-xs text-gray-400 font-semibold">
+                                        {order?.user?.name}
+                                    </p>
+                                </td>
+                                <td className="px-6 py-4 whitespace-nowrap">
+                                    <p className="text-sm text-orange-300 font-medium">
+                                        Rs. {order.totalAmount}
+                                    </p>
+                                </td>
+                                <td className="px-6 py-4 whitespace-nowrap">
+                                    <p className="text-sm text-gray-300">{order.fullAddress}</p>
+                                </td>
+                                <td className="px-6 py-4 whitespace-nowrap">
+                                    <p className="text-sm text-gray-300">{order.user.email}</p>
+                                </td>
+                                <td className="px-6 py-4 whitespace-nowrap">
+                                    <span
+                                        className={`inline-block px-3 py-1 text-xs font-semibold rounded-full ${STATUS_COLORS[order.status]}`}
+                                    >
+                                        {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
+                                    </span>
+                                </td>
+                                <td className="px-6 py-4 whitespace-nowrap">
+                                    <div className="flex items-center gap-4">
+                                        <Link to={`/secret-dashboard/order/${order._id}`}>
+                                            <button className="p-2 rounded-full bg-gray-700 hover:bg-orange-600 transition text-white">
+                                                <Info className="w-4 h-4" />
+                                            </button>
+                                        </Link>
+                                        <button
+                                            onClick={() => deleteOrder(order._id)}
+                                            className="p-2 rounded-full bg-gray-700 hover:bg-red-600 transition text-white"
+                                        >
+                                            <Trash className="w-4 h-4" />
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        ))}
+                    </tbody>
+                </table>
+            ) : (
+                <p className="text-center text-gray-400 font-semibold p-8">No Orders Found</p>
+            )}
         </motion.div>
     )
 }

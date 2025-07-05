@@ -1,150 +1,132 @@
-import React, { useEffect } from 'react'
+import { useEffect } from 'react'
 import { useOrderStore } from '../stores/useOrderStore'
-import { useParams, useNavigate, Link } from 'react-router-dom';
+import { useParams, useNavigate, Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import { ChevronLeft } from 'lucide-react';
+import { ChevronLeft } from 'lucide-react'
 
 const OrderDetails = () => {
-    const { fetchOrderById, deleteOrder, toggleCompleteStatus, orders } = useOrderStore();
-    const { orderId } = useParams();
-    const navigate = useNavigate();
+    const { fetchOrderById, deleteOrder, toggleCompleteStatus, order } = useOrderStore()
+    const { orderId } = useParams()
+    const navigate = useNavigate()
 
-
-
-    const statuses = ["pending", "delivered", "cancelled"]
+    const statuses = ['pending', 'delivered', 'cancelled']
 
     useEffect(() => {
-        async function fetchData() {
-            if (orderId) { await fetchOrderById(orderId); }
-            if (orders === null) navigate('/secret-dashboard');
-        }
-        fetchData();
-    }, [orderId, fetchOrderById])
+        fetchOrderById(orderId)
+    }, [orderId])
+
+    if (!order) return <p className="text-center text-gray-300 mt-10">Order not found.</p>
 
     const handleDeleteOrder = async (orderId) => {
-        if (window.confirm("Are you sure you want to delete this order?")) {
-            await deleteOrder(orderId);
-            navigate('/secret-dashboard/');
+        if (window.confirm('Are you sure you want to delete this order?')) {
+            await deleteOrder(orderId)
+            navigate('/secret-dashboard/')
         }
     }
 
     return (
-        <div className='min-h-screen relative overflow-hidden'>
-            <div className='relative z-10 container mx-auto px-4 py-10'>
-                <motion.h1
-                    className='text-4xl font-bold mb-5 text-orange-400 text-center'
-                    initial={{ opacity: 0, y: -20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.8 }}
-                >
-                    Order Details
-                </motion.h1>
-            </div>
+        <div className="min-h-screen bg-transparent relative overflow-hidden text-white px-4 py-3">
             <motion.div
-                className="bg-gray-800 shadow-lg rounded-2xl overflow-hidden max-w-4xl mx-auto px-8 py-6 mt-6 text-white"
-                initial={{ opacity: 0, y: 20 }}
+                initial={{ opacity: 0, y: 24 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.8 }}
+                transition={{ duration: 0.5 }}
+                className="max-w-5xl mx-auto space-y-10 pt-20"
             >
-                <div className="space-y-4">
-                    <div>
-                        <span className="text-gray-400 font-medium">Order ID:</span>
-                        <span className="ml-2 text-orange-400">{orders?._id}</span>
-                    </div>
-                    <div>
-                        <span className="text-gray-400 font-medium">Order Date:</span>
-                        <span className="ml-2">{new Date(orders?.createdAt).toLocaleDateString()}</span>
-                    </div>
-                    <div className='flex items-center space-x-4'>
-                        <span className="text-gray-400 font-medium">Status:</span>
-                        <select
-                            id='category'
-                            name='category'
-                            value={orders.status}
-                            onChange={(e) => toggleCompleteStatus(orders._id, e.target.value)}
-                            className='mt-2 px-4 py-2 rounded-xl bg-gray-800 text-white 
-                                border border-gray-600 focus:outline-none focus:ring-1
-                                focus:ring-orange-500 focus:border-orange-500 
-                                transition duration-150 ease-in-out shadow-sm'
-                            required
-                        >
-                            <option value=''>Select a category</option>
-                            {statuses.map((status) => (
-                                <option key={status} value={status}>
-                                    {status.charAt(0).toUpperCase() + status.slice(1)}
-                                </option>
-                            ))}
-                        </select>
-                    </div>
-                </div>
+                <h1 className="text-center text-4xl font-extrabold text-orange-400 drop-shadow-lg">
+                    Order Details
+                </h1>
 
-                <div className="border-t border-gray-700 my-6"></div>
-
-                <div className="space-y-2">
-                    <h3 className="text-lg font-semibold text-orange-300 mb-2">User Details</h3>
-                    <p><span className="text-gray-400 font-medium">Email:</span> <span className="ml-1">{orders?.user?.email}</span></p>
-                    <p><span className="text-gray-400 font-medium">Contact:</span> <span className="ml-1">{orders?.phoneNumber}</span></p>
-                    <p><span className="text-gray-400 font-medium">Delivery Address:</span> <span className="ml-1">{orders?.fullAddress}</span></p>
-                </div>
-
-                <div className="border-t border-gray-700 my-6"></div>
-
-                <div className="space-y-2">
-                    <h3 className="text-lg font-semibold text-orange-300 mb-2">Product Details</h3>
-                    {orders?.products?.map((item) => {
-                        return <div key={item._id} className='rounded-lg border p-3 shadow-sm border-gray-700 bg-gray-800 md:p-5'>
-                            <div className='space-y-4 md:flex md:items-center md:justify-between md:gap-5 md:space-y-0'>
-                                <div className='shrink-0 md:order-1'>
-                                    <img className='h-20 md:h-32 rounded object-cover' src={item.product?.image} />
-                                </div>
-                                <div className='flex items-center justify-between md:order-3 md:justify-end'>
-                                    <div className='flex items-center gap-2'>
-                                        <p>{item.quantity}</p>
-                                    </div>
-
-                                    <div className='text-end md:order-4 md:w-32'>
-                                        <p className='text-base font-bold text-orange-400'>Rs.{item.price}</p>
-                                    </div>
-                                </div>
-
-                                <div className='w-full min-w-0 flex-1 space-y-4 md:order-2 md:max-w-md'>
-                                    <Link to={`/category/${item.product?.category}`} className='text-base font-semibold text-white hover:text-orange-400 hover:underline'>
-                                        {(item.product?.title).toUpperCase()}
-                                    </Link>
-                                    <p className='text-sm text-gray-400'>Category: {item.product?.category}</p>
-
-                                </div>
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                    <div className="bg-gray-800 bg-opacity-70 rounded-3xl p-8 shadow-lg border border-gray-700 space-y-6 backdrop-blur-sm">
+                        <div className="space-y-3 text-gray-300">
+                            <p>
+                                <span className="text-orange-400 font-semibold">Order ID:</span> {order._id}
+                            </p>
+                            <p>
+                                <span className="text-orange-400 font-semibold">Date:</span>{' '}
+                                {new Date(order.createdAt).toLocaleDateString()}
+                            </p>
+                            <div className="mt-4">
+                                <label htmlFor={`status-${orderId}`} className="text-orange-400 font-semibold">
+                                    Status:
+                                </label>
+                                <select
+                                    value={order.status}
+                                    disabled={order.status === 'delivered'}
+                                    onChange={(e) => toggleCompleteStatus(order._id, e.target.value)}
+                                    className="w-full px-4 py-3 rounded-xl bg-gray-900 border border-gray-600 text-white
+                    focus:outline-none focus:ring-2 focus:ring-orange-500 transition duration-150 ease-in-out shadow-sm"
+                                >
+                                    <option value="" disabled hidden>
+                                        Select status
+                                    </option>
+                                    {statuses.map((status) => (
+                                        <option key={status} value={status} className="capitalize">
+                                            {status.charAt(0).toUpperCase() + status.slice(1)}
+                                        </option>
+                                    ))}
+                                </select>
                             </div>
                         </div>
-                    })}
-                </div>
-                
-                <div className="border-t border-gray-700 my-6"></div>
 
-                <div className="space-y-2">
-                    <h3 className="text-lg font-semibold text-orange-300 mb-2">Payment Info</h3>
-                    <p><span className="text-gray-400 font-medium">Amount:</span> <span className="ml-1">Rs {orders?.totalAmount}</span></p>
-                    <p><span className="text-gray-400 font-medium">Method:</span> <span className="ml-1 capitalize">{orders?.paymentMethod}</span></p>
-                    <p><span className="text-gray-400 font-medium">Payment Completed:</span> <span className="ml-1">{orders?.isPaymentCompleted ? "Yes" : "No"}</span></p>
+                        <div className="space-y-2 text-gray-300">
+                            <p className="text-orange-400 font-semibold text-lg">User Info</p>
+                            <p>Email: {order.user?.email}</p>
+                            <p>Phone: {order.phoneNumber}</p>
+                            <p>Address: {order.fullAddress}</p>
+                        </div>
+
+                        <div className="space-y-2 text-gray-300">
+                            <p className="text-orange-400 font-semibold text-lg">Payment</p>
+                            <p>Amount: Rs {order.totalAmount}</p>
+                            <p>Method: {order.paymentMethod}</p>
+                            <p>Completed: {order.isPaymentCompleted ? 'Yes' : 'No'}</p>
+                        </div>
+                    </div>
+
+                    <div className="space-y-6">
+                        {order.products?.map((item) => (
+                            <div
+                                key={item._id}
+                                className="flex flex-col md:flex-row items-start gap-6 bg-gray-800 bg-opacity-70 rounded-2xl p-5 border border-gray-700 shadow-md backdrop-blur-sm"
+                            >
+                                <img
+                                    src={item.product?.image}
+                                    alt={item.product?.title}
+                                    className="w-full md:w-32 h-32 object-cover rounded-xl"
+                                />
+                                <div className="flex-1 space-y-1 text-gray-300">
+                                    <Link
+                                        to={`/category/${item.product?.category}`}
+                                        className="text-white font-semibold text-lg hover:text-orange-400 transition"
+                                    >
+                                        {item.product?.title}
+                                    </Link>
+                                    <p>Category: {item.product?.category}</p>
+                                    <p>Quantity: {item.quantity}</p>
+                                    <p className="text-orange-400 font-bold text-xl">Rs. {item.price}</p>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
                 </div>
 
-                <div className="mt-8 flex justify-between items-center">
+                <div className="flex justify-between pt-4 border-t border-gray-700">
                     <button
                         onClick={() => navigate(-1)}
-                        className="flex items-center bg-gray-400 hover:bg-gray-300 text-black py-2 px-4 rounded-lg font-semibold transition duration-200 shadow-sm"
+                        className="flex items-center gap-2 bg-gray-700 hover:bg-gray-600 text-white text-sm px-5 py-3 rounded-2xl transition"
                     >
-                        <ChevronLeft className='size-4 mt-1' />
+                        <ChevronLeft className="w-5 h-5" />
                         Back
                     </button>
                     <button
-                        onClick={() => handleDeleteOrder(orders._id)}
-                        className="bg-red-600 hover:bg-red-700 text-white py-2 px-4 rounded-lg font-semibold transition duration-200 shadow-sm"
+                        onClick={() => handleDeleteOrder(order._id)}
+                        className="bg-red-600 hover:bg-red-700 text-white text-sm px-5 py-3 rounded-2xl transition"
                     >
                         Delete Order
                     </button>
                 </div>
             </motion.div>
-
         </div>
     )
 }
