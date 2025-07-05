@@ -48,14 +48,13 @@ const OrderDetails = () => {
                             </p>
                             <div className="mt-4">
                                 <label htmlFor={`status-${orderId}`} className="text-orange-400 font-semibold">
-                                    Status:
+                                    Status:{' '}
                                 </label>
                                 <select
                                     value={order.status}
                                     disabled={order.status === 'delivered'}
                                     onChange={(e) => toggleCompleteStatus(order._id, e.target.value)}
-                                    className="w-full px-4 py-3 rounded-xl bg-gray-900 border border-gray-600 text-white
-                    focus:outline-none focus:ring-2 focus:ring-orange-500 transition duration-150 ease-in-out shadow-sm"
+                                    className="w-1/2 px-3 py-2 bg-gray-800 border border-gray-600 rounded-md text-sm text-gray-200 focus:outline-none focus:ring-2 focus:ring-orange-500"
                                 >
                                     <option value="" disabled hidden>
                                         Select status
