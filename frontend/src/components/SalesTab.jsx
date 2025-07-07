@@ -1,12 +1,14 @@
 import { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
-import { Info, Trash } from 'lucide-react'
+import { Info, Search, Trash } from 'lucide-react'
 import { useOrderStore } from '../stores/useOrderStore'
 import { Link } from 'react-router-dom'
+import useDebounce from '../../hooks/useDebounce'
 
 const SalesTab = () => {
-    const { fetchAllOrders, orders, deleteOrder } = useOrderStore()
+    const { fetchAllOrders, orders, deleteOrder, getOrderViaSearch } = useOrderStore()
     const [filter, setFilter] = useState('all')
+    const [searchedNumber, setSearchedNumber] = useState("")
 
     useEffect(() => {
         fetchAllOrders()
@@ -19,6 +21,18 @@ const SalesTab = () => {
     }
 
     const filtered = filter === 'all' ? orders : orders.filter(o => o.status === filter)
+    
+    const debouncedNumber = useDebounce(searchedNumber, 200);
+    
+    useEffect(() => {
+        if (debouncedNumber) {
+            getOrderViaSearch(debouncedNumber);
+        } else {
+            fetchAllOrders()
+        }
+
+    }, [searchedNumber])
+
 
     return (
         <motion.div
@@ -29,16 +43,28 @@ const SalesTab = () => {
         >
             <div className="flex items-center justify-between gap-4 px-6 py-4 sticky top-0 z-30 bg-gray-900/80 backdrop-blur-lg">
                 <h2 className="text-lg font-semibold text-white">Sales Overview</h2>
-                <select
-                    value={filter}
-                    onChange={(e) => setFilter(e.target.value)}
-                    className="px-3 py-2 bg-gray-800 border border-gray-700 rounded-md text-sm text-gray-200 focus:outline-none focus:ring-2 focus:ring-orange-500"
-                >
-                    <option value="all">All</option>
-                    <option value="pending">Pending</option>
-                    <option value="delivered">Delivered</option>
-                    <option value="cancelled">Cancelled</option>
-                </select>
+                <div className='flex items-center justify-between gap-4'>
+                    <div className='relative'>
+                        <input
+                            type='text'
+                            className='w-56 px-3 py-2 bg-gray-800 border border-gray-700 rounded-md text-base text-gray-200 focus:outline-none focus:ring-2 focus:ring-orange-500'
+                            placeholder='Enter Order Id'
+                            onChange={(e) => setSearchedNumber(e.target.value)}
+                        />
+                        <Search className='absolute size-[20px] right-3 top-[10px] text-gray-400 cursor-pointer hover:text-orange-500 hover:scale-105 transition duration-100 ease-in-out' />
+                    </div>
+                    <label htmlFor="filter" className="sr-only">Filter Orders</label>
+                    <select
+                        value={filter}
+                        onChange={(e) => setFilter(e.target.value)}
+                        className="px-3 py-2 bg-gray-800 border border-gray-700 rounded-md text-sm text-gray-200 focus:outline-none focus:ring-2 focus:ring-orange-500"
+                    >
+                        <option value="all">All</option>
+                        <option value="pending">Pending</option>
+                        <option value="delivered">Delivered</option>
+                        <option value="cancelled">Cancelled</option>
+                    </select>
+                </div>
             </div>
 
             {filtered.length ? (
