@@ -16,7 +16,7 @@ export const getOrderById = async (req, res) => {
 
 export const getAllOrders = async (req, res) => {
     try {
-        const orders = await Order.find({}).populate("user", "name email").populate("products.product", "title image category").sort({ createdAt: -1 }).lean()
+        const orders = await Order.find({}).populate("user", "name email").sort({ createdAt: -1 }).lean()
         return res.status(200).json({success:true, orders})
     } catch (error) {
         console.log(`Error in getting all order: ${error.message}`);
@@ -26,7 +26,7 @@ export const getAllOrders = async (req, res) => {
 
 export const getUserOrders = async (req, res) => {
     try {
-        const orders = await Order.find({user:req.user._id}).populate("user", "name email").populate("products.product", "title image category").sort({ createdAt: -1 }).lean()
+        const orders = await Order.find({user:req.user._id}).populate("products.product", "title").sort({ createdAt: -1 }).lean()
         return res.status(200).json({success:true, orders})
     } catch (error) {
         console.log(`Error in getting all order: ${error.message}`);
@@ -73,6 +73,21 @@ export const changeOrderStatus = async(req, res) => {
     } catch (error) {
         console.log(`Error in changing order status: ${error.message}`);
         res.status(500).json({ success: false, message: "Error in changing order status" });
-        
+    }
+}
+
+export const getOrderByContact = async(req,res) => {
+    try {
+        const {contact} = req.query;
+        const order = await Order.find({
+            phoneNumber:{$regex: contact}
+        })
+        if(!order) {
+            return res.status(404).json({ success: false, message: "Order not found" });
+        }
+        return res.status(200).json({ success: true, order });
+    } catch (error) {
+        console.log(`Error in getting order by ID via search: ${error.message}`);
+        res.status(500).json({ success: false, message: "Error in getting order by ID via search" });
     }
 }
