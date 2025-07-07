@@ -83,4 +83,16 @@ export const useOrderStore = create((set) => ({
             set({ loading: false })
         }
     },
+    getOrderViaSearch: async(phone) => {
+        set({ loading: true });
+        try {
+            const res = await axios.get(`/orders/searchOrder?contact=${phone}`)
+            set({ orders: res.data.order })
+        } catch (error) {
+            console.log(`Error in deleting order ${error.message}`)
+            toast.error(error.message)
+        } finally {
+            set({ loading: false })
+        }
+    },
 }))
