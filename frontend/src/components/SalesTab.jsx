@@ -1,9 +1,8 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { motion } from 'framer-motion'
 import { Info, Search, Trash } from 'lucide-react'
 import { useOrderStore } from '../stores/useOrderStore'
 import { Link } from 'react-router-dom'
-import useDebounce from '../../hooks/useDebounce'
 
 const SalesTab = () => {
     const { fetchAllOrders, orders, deleteOrder, getOrderViaSearch } = useOrderStore()
@@ -21,17 +20,6 @@ const SalesTab = () => {
     }
 
     const filtered = filter === 'all' ? orders : orders.filter(o => o.status === filter)
-    
-    const debouncedNumber = useDebounce(searchedNumber, 200);
-    
-    useEffect(() => {
-        if (debouncedNumber) {
-            getOrderViaSearch(debouncedNumber);
-        } else {
-            fetchAllOrders()
-        }
-
-    }, [searchedNumber])
 
 
     return (
@@ -51,7 +39,7 @@ const SalesTab = () => {
                             placeholder='Enter Order Id'
                             onChange={(e) => setSearchedNumber(e.target.value)}
                         />
-                        <Search className='absolute size-[20px] right-3 top-[10px] text-gray-400 cursor-pointer hover:text-orange-500 hover:scale-105 transition duration-100 ease-in-out' />
+                        <Search onClick={()=>{getOrderViaSearch(searchedNumber)}} className='absolute size-[20px] right-3 top-[10px] text-gray-400 cursor-pointer hover:text-orange-500 hover:scale-105 transition duration-100 ease-in-out' />
                     </div>
                     <label htmlFor="filter" className="sr-only">Filter Orders</label>
                     <select
